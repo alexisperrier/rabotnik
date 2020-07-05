@@ -2,6 +2,7 @@
     "project_root_path": "absolute_path_to_project_folder",
     "create_new_channels_from_recommendations": "True|False: are new channels organically created from recommended videos",
     "plotshow": "True|False: on local: true, in Prod, screenless, False",
+    "sql_verbosity" : "True|False",
     "db": {
         "host": "127.0.0.1: if you set up a proxy otherwise IP of the db instance",
         "port": 3307,
