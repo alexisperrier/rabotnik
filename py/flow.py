@@ -28,7 +28,7 @@ class Flow(object):
 
     def execution_time(self):
         self.delta_time = (datetime.datetime.now() - self.start_time).seconds
-        print("--"* 5 + "execution time {}m {}s".format(  int(self.delta_time / 60), str(self.delta_time -  int(self.delta_time / 60)*60).zfill(2) ))
+        print("--"* 5 + " \t execution time {}m {}s".format(  int(self.delta_time / 60), str(self.delta_time -  int(self.delta_time / 60)*60).zfill(2) ))
 
     def freeze(self):
         # add item_ids to flow, do nothing if item_id already in flow
@@ -82,7 +82,7 @@ class Flow(object):
         print(f"{len(deleted_ids)} unaccessible items: {deleted_ids}")
 
         for item_id in deleted_ids[:1]:
-            print(item_id)
+            Pipeline.update_status(idname = self.idname,  item_id = item_id, status = 'unavailable')
             sql = f" update pipeline set status = 'unavailable' where {self.idname} = '{item_id}' "
             job.execute(sql)
 

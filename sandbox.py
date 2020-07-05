@@ -16,14 +16,12 @@ from py import *
 
 
 if __name__ == '__main__':
-    flowname  = 'video_stats'
+    flowname  = 'complete_videos'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
 
     klass = globals()[classname]
-    print(klass)
-    op = klass(flowtag = True, mode = 'dbquery', counting = False)
+    op = klass(flowtag = True, mode = 'local', counting = False)
     op.get_items()
-
     if op.flowtag:
         op.freeze()
     op.query_api()
@@ -31,6 +29,8 @@ if __name__ == '__main__':
         op.decode()
         op.prune()
         op.ingest()
+        if job.create_channel_from_video:
+            op.postop()
     else:
         print("nok", op.reason)
     op.execution_time()

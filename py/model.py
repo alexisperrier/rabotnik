@@ -7,7 +7,7 @@ class Model(object):
 class ChannelStat(Model):
 
     @classmethod
-    def upsert(self,d):
+    def upsert(cls,d):
         sql = f'''
                 insert into channel_stat as cs
                     (channel_id,  views, subscribers, videos, retrieved_at)
@@ -25,13 +25,65 @@ class ChannelStat(Model):
 class VideoStat(Model):
 
     @classmethod
-    def insert(self,d):
+    def insert(cls,d):
         sql = f'''
                 insert into video_stat_02 as cs
                     (video_id,  views, source, viewed_at)
                 values
                     ('{d.video_id}', {d.views}, '{d.source}', '{d.viewed_at}')
         '''
+        job.execute(sql)
+
+
+class Video(Model):
+
+    @classmethod
+    def update(cls,d):
+        sql = f'''
+            update video set
+                published_at = '{d.published_at}',
+                title = $${d.title}$$,
+                summary = $${d.summary}$$,
+                thumbnail = '{d.thumbnail}',
+                category_id = {d.category_id},
+                duration = '{d.duration}',
+                caption = {d.caption},
+                privacy_status = '{d.privacy_status}',
+                tags = $${d.tags}$$,
+                pubdate = '{d.pubdate}',
+                live_content = '{d.live_content}',
+                default_audio_language = '{d.default_audio_language}',
+                default_language = '{d.default_language}',
+                wikitopics = $${d.wikitopics}$$,
+                seconds = {d.seconds}
+            where video_id = '{d.video_id}'
+        '''
+        job.execute(sql)
+
+
+class Pipeline(Model):
+    @classmethod
+    def update_status(cls, **kwargs):
+        sql = f" update pipeline set status = '{kwargs['status']}' where {kwargs['idname']}= '{kwargs['item_id']}' "
+        job.execute(sql)
+
+    @classmethod
+    def create(cls, **kwargs):
+        sql = f'''
+                insert into pipeline ({kwarg['idname']}, status)
+                values ('{kwargs['item_id']}','blank')
+                on conflict ({kwarg['idname']}) DO NOTHING;
+            '''
+        job.execute(sql)
+
+class Channel(object):
+    @classmethod
+    def create(cls, **kwargs):
+        sql = f'''
+                insert into channel (channel_id)
+                values ('{kwargs['channel_id']}')
+                on conflict (channel_id) DO NOTHING;
+            '''
         job.execute(sql)
 
 
