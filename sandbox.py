@@ -16,7 +16,7 @@ from py import *
 
 
 if __name__ == '__main__':
-    flowname = 'video_stats'
+    flowname = 'channel_stats'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
 
     klass = globals()[classname]
