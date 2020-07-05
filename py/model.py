@@ -1,4 +1,5 @@
 from .job import *
+
 class Model(object):
     def __init__(self):
         pass
@@ -20,3 +21,23 @@ class ChannelStat(Model):
                 where cs.channel_id = '{d.channel_id}'
         '''
         job.execute(sql)
+
+class VideoStat(Model):
+
+    @classmethod
+    def insert(self,d):
+        sql = f'''
+                insert into video_stat_02 as cs
+                    (video_id,  views, source, viewed_at)
+                values
+                    ('{d.video_id}', {d.views}, '{d.source}', '{d.viewed_at}')
+        '''
+        job.execute(sql)
+
+
+
+
+
+
+
+# -------
