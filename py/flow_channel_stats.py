@@ -18,6 +18,8 @@ class FlowChannelStats(Flow):
         self.parts      = 'statistics'
         self.fields     = 'items(id,statistics(viewCount,subscriberCount,videoCount))'
 
+    def decode(self):           super().decode()
+    def prune(self):            super().prune()
     def execution_time(self):   super().execution_time()
     def freeze(self):           super().freeze()
     def get_items(self):        super().get_items()
@@ -25,6 +27,7 @@ class FlowChannelStats(Flow):
     def query_api(self):        super().query_api()
     def release(self,item_id):  super().release(item_id)
     def update_query(self):     super().update_query()
+    def tune_sql(self):         super().tune_sql()
 
     def code_sql(self):
         return '''
@@ -43,13 +46,6 @@ class FlowChannelStats(Flow):
                 and ((cs.id is null) OR (cs.retrieved_at < NOW() - interval '1 month'))
             order by t.rss_next_parsing desc
         '''
-
-    def decode(self):
-        '''
-            Content returned by the API is transformed into a dataframe
-        '''
-        data = json.loads(self.results.result.content.decode('utf-8'))
-        self.df = pd.io.json.json_normalize(data['items']).rename(columns = FlowChannelStats.varnames_api2db)
 
     def ingest(self):
         for i,d in self.df.iterrows():
