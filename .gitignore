@@ -1,0 +1,12 @@
+.DS_Store
+__pycache__/
+
+.ipynb_checkpoints
+.~lock.*
+~$*
+
+log/*.log
+
+config/ytkojodb.json
+
+notes/
