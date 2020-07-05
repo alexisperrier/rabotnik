@@ -12,22 +12,23 @@ class Flow(object):
         self.flowtag    = kwargs['flowtag']
         self.max_items  = 50
         self.get_sql()
+        self.tune_sql()
 
     def code_sql(self): pass
     def ingest(self):   pass
+    def tune_sql(self): pass
 
-    def update_query(self):
-        self.mode = 'script'
-        self.get_sql()
-        sql = f'''update query set sql = $${self.sql}$$ where queryname = '{self.flowname}';'''
-        job.execute(sql)
-
-    def release(self, item_id):
-        # rm item_id from flow
-        sql = f'''
-            delete from flow where {self.idname} = '{item_id}' and flowname = '{self.flowname}'
+    def decode(self):
         '''
-        job.execute(sql)
+            Content returned by the API is transformed into a dataframe with proper column names
+        '''
+        data = json.loads(self.results.result.content.decode('utf-8'))
+        self.df = pd.io.json.json_normalize(data['items']).rename(columns = self.__class__.varnames_api2db)
+
+
+    def execution_time(self):
+        self.delta_time = (datetime.datetime.now() - self.start_time).seconds
+        print("--"* 5 + "execution time {}m {}s".format(  int(self.delta_time / 60), str(self.delta_time -  int(self.delta_time / 60)*60).zfill(2) ))
 
     def freeze(self):
         # add item_ids to flow, do nothing if item_id already in flow
@@ -56,7 +57,6 @@ class Flow(object):
             self.item_ids = self.item_ids[:min([self.max_items, len(self.item_ids) ]) ]
         print(f"{len(self.item_ids)} {self.idname}")
 
-
     def get_sql(self):
         '''
         the sql of reference, used to get the items, is stored in the dabase in the query table
@@ -72,16 +72,42 @@ class Flow(object):
         if not self.counting:
             self.sql = self.sql + f" limit {self.max_items}"
 
+    def prune(self):
+        '''
+            not all item_ids are returned by the API, videos can be deleted, channels can be banned
+            => tag item as pipeline status: unavailable
+            => rm from flow
+        '''
+        deleted_ids     = [id for id in self.item_ids if id not in self.df[self.idname].values  ]
+        print(f"{len(deleted_ids)} unaccessible items: {deleted_ids}")
+
+        for item_id in deleted_ids[:1]:
+            print(item_id)
+            sql = f" update pipeline set status = 'unavailable' where {self.idname} = '{item_id}' "
+            job.execute(sql)
+
+            self.release(item_id)
+
     def query_api(self):
         self.results = APIrequest(self,job).get()
         self.status_code = self.results.result.status_code
         self.ok = self.results.result.ok
         self.reason = self.results.result.reason
 
+    def release(self, item_id):
+        # rm item_id from flow
+        sql = f'''
+            delete from flow where {self.idname} = '{item_id}' and flowname = '{self.flowname}'
+        '''
+        job.execute(sql)
 
-    def execution_time(self):
-        self.delta_time = (datetime.datetime.now() - self.start_time).seconds
-        print("-- "* 5 + "execution time {}m {}s".format(  int(self.delta_time / 60), str(self.delta_time -  int(self.delta_time / 60)*60).zfill(2) ))
+    def update_query(self):
+        self.mode = 'script'
+        self.get_sql()
+        sql = f'''update query set sql = $${self.sql}$$ where queryname = '{self.flowname}';'''
+        job.execute(sql)
+
+
 
 
 
