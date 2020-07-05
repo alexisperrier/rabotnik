@@ -10,7 +10,7 @@ class Flow(object):
         self.mode       = kwargs['mode']
         self.counting   = kwargs['counting']
         self.flowtag    = kwargs['flowtag']
-        self.max_items  = 4
+        self.max_items  = 50
         self.get_sql()
 
     def code_sql(self): pass
@@ -48,13 +48,13 @@ class Flow(object):
         '''
         self.data       = pd.read_sql(self.sql, job.db.conn)
         self.item_ids   = list(self.data[:min([self.max_items, self.data.shape[0]])][self.idname].values)
-        print(self.data.shape,"items")
         # add forced updates at the top of the pile for immediate processing
         sql = f''' select {self.idname} from flow where flowname = '{self.flowname}' and mode = 'forced' '''
         tmp = pd.read_sql(sql, job.db.conn)
         if tmp.shape[0]> 0:
             self.item_ids = list(tmp[self.idname].values) + self.item_ids
             self.item_ids = self.item_ids[:min([self.max_items, len(self.item_ids) ]) ]
+        print(f"{len(self.item_ids)} {self.idname}")
 
 
     def get_sql(self):
@@ -81,8 +81,7 @@ class Flow(object):
 
     def execution_time(self):
         self.delta_time = (datetime.datetime.now() - self.start_time).seconds
-        print("-- execution time {}m {}s".format(  int(self.delta_time / 60), str(self.delta_time -  int(self.delta_time / 60)*60).zfill(2) ))
-
+        print("-- "* 5 + "execution time {}m {}s".format(  int(self.delta_time / 60), str(self.delta_time -  int(self.delta_time / 60)*60).zfill(2) ))
 
 
 class FlowChannelStats(Flow):
@@ -97,7 +96,7 @@ class FlowChannelStats(Flow):
     def __init__(self,**kwargs):
         self.flowname = 'channel_stats'
         super().__init__(**kwargs)
-        self.max_items  = 2
+        # self.max_items  = 50
         self.endpoint   = 'channels'
         self.idname     = 'channel_id'
         self.parts      = 'statistics'
@@ -138,7 +137,6 @@ class FlowChannelStats(Flow):
 
     def ingest(self):
         for i,d in self.df.iterrows():
-            print(d)
             ChannelStat.upsert(d)
             self.release(d.channel_id)
 
