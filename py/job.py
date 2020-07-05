@@ -17,6 +17,7 @@ class Job(object):
         self.reco_folder    = os.path.join(self.project_root, 'reco')
         self.img_folder     = os.path.join(self.project_root, 'img')
 
+        self.create_channel_from_video   = bool(distutils.util.strtobool(config['create_channel_from_video']))
         self.plotshow   = bool(distutils.util.strtobool(config['plotshow']))
         self.verbose    = bool(distutils.util.strtobool(config['job_verbose']))
         self.db         = DbUtils(config)
@@ -40,7 +41,7 @@ class Job(object):
 
     def __repr__(self):
         return f'''
-            - create_new_channels_from_recommendations {self.create_new_channels_from_recommendations}
+            - create_channel_from_video {self.create_channel_from_video}
             - project_root:\t {self.project_root}
             - plotshow:\t {self.plotshow}
             - len(apikey):\t {len(self.apikey)}
