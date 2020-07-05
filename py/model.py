@@ -19,5 +19,4 @@ class ChannelStat(Model):
                     retrieved_at = now()
                 where cs.channel_id = '{d.channel_id}'
         '''
-        print(sql)
         job.execute(sql)

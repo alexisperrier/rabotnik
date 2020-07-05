@@ -6,7 +6,7 @@ from .api import *
 
 class Job(object):
 
-    VERBOSE = True
+    VERBOSE = False
     config_file_path = './config/config_rabotnik.json'
 
     def __init__(self):
