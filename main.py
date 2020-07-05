@@ -33,6 +33,7 @@ if __name__ == '__main__':
     op.query_api()
     if op.ok:
         op.decode()
+        op.prune()
         op.ingest()
     else:
         print("nok", op.reason)

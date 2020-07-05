@@ -16,13 +16,27 @@ from py import *
 
 
 if __name__ == '__main__':
-    flowname = 'channel_stats'
+    flowname  = 'video_stats'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
 
     klass = globals()[classname]
     print(klass)
-    op = klass(flowtag = False, mode = 'local', counting = True)
-    print(op)
+    op = klass(flowtag = True, mode = 'dbquery', counting = False)
+    op.get_items()
+
+    if op.flowtag:
+        op.freeze()
+    op.query_api()
+    if op.ok:
+        op.decode()
+        op.prune()
+        op.ingest()
+    else:
+        print("nok", op.reason)
+    op.execution_time()
+
+
+
 
 
 # ----
