@@ -18,9 +18,8 @@ from py import *
 if __name__ == '__main__':
     flowname  = 'complete_videos'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
-
     klass = globals()[classname]
-    op = klass(flowtag = True, mode = 'local', counting = False)
+    op = klass(flowtag = True, mode = 'local', counting = True)
     op.get_items()
     if op.flowtag:
         op.freeze()

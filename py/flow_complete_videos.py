@@ -29,7 +29,7 @@ class FlowCompleteVideos(Flow):
     def __init__(self,**kwargs):
         self.flowname = 'complete_videos'
         super().__init__(**kwargs)
-        self.max_items  = 2
+        self.max_items  = 10
         self.endpoint   = 'videos'
         self.idname     = 'video_id'
         self.parts      = 'snippet,contentDetails,status,recordingDetails,topicDetails'
@@ -50,7 +50,7 @@ class FlowCompleteVideos(Flow):
 
     def code_sql(self):
         return '''
-             select v.video_id, v.published_at
+             select v.video_id, v.published_at, p.status
                  from video v
                  join pipeline p on p.video_id = v.video_id
                  left join border b on b.channel_id = v.channel_id
@@ -90,18 +90,29 @@ class FlowCompleteVideos(Flow):
         '''
             Checks the existence of the channels
         '''
+        print("======= postop")
         channel_ids = self.df.channel_id.unique()
         sql = f'''
-            select channel_id from channel where channel_id in ('{',',join(channel_ids)}')
+            select channel_id from channel where channel_id in ('{"','".join(channel_ids)}')
         '''
         existing_channel_ids = pd.read_sql(sql, job.db.conn).channel_id.values
-        missing_channel_ids = [id for if in channel_ids if id not in existing_channel_ids]
+        missing_channel_ids = [id for id in channel_ids if id not in existing_channel_ids]
 
         data = self.df[self.df.channel_id.isin(missing_channel_ids)].copy()
+        # find origin from videos
+        sql     = f''' select video_id, origin from video where video_id in ('{"','".join(data.video_id.values)}') '''
+        origins = pd.read_sql(sql, job.db.conn)
+        data    = data.merge(origins, on = 'video_id', how = 'outer')
+
+        print("--missing_channel_ids:\t",missing_channel_ids)
         for i,d in data.iterrows():
+            print(d.channel_id, d.origin)
             Channel.create(d.channel_id, d.origin)
             Pipeline.create(idname = 'channel_id',item_id = d.channel_id)
             Timer.create(idname = 'channel_id',item_id = d.channel_id)
+
+
+
 
 
 
