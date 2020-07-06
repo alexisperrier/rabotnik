@@ -16,22 +16,29 @@ from py import *
 
 
 if __name__ == '__main__':
-    flowname  = 'complete_channels'
+    flowname  = 'channel_topics'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
     klass = globals()[classname]
+
     op = klass(flowtag = True, mode = 'local', counting = True)
-    op.get_items()
-    if op.flowtag:
-        op.freeze()
-    op.query_api()
-    if op.ok:
-        op.decode()
-        op.prune()
-        op.ingest()
-        if op.channel_growth & hasattr(op, 'postop'):
-            op.postop()
-    else:
-        print("nok", op.reason)
+    for operation in op.operations:
+        print("-- operation",operation)
+        getattr(op, operation)()
+
+    # op.get_items()
+    #
+    # if op.flowtag:
+    #     op.freeze()
+    #
+    # op.query_api()
+    # if op.ok:
+    #     op.decode()
+    #     op.prune()
+    #     op.ingest()
+    #     if op.channel_growth & hasattr(op, 'postop'):
+    #         op.postop()
+    # else:
+    #     print("nok", op.reason)
     op.execution_time()
 
 

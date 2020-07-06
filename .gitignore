@@ -10,3 +10,5 @@ log/*.log
 config/config_rabotnik.json
 
 notes/
+
+files/

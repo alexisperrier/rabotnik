@@ -1,6 +1,7 @@
 from .job import *
 from .model import *
 import pandas as pd
+import numpy as np
 import datetime
 
 class Flow(object):
