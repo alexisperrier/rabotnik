@@ -16,11 +16,11 @@ from py import *
 
 
 if __name__ == '__main__':
-    flowname  = 'index_search'
+    flowname  = 'feed_parsing'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
     klass = globals()[classname]
 
-    op = klass(flowtag = True, mode = 'local', counting = True)
+    op = klass(flowtag = True, mode = 'local', counting = False)
     for operation in op.operations:
         print("--",operation)
         if op.ok:

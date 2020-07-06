@@ -4,6 +4,7 @@ from .flow_trim import *
 from .flow_video_stats import *
 from .flow_index_search import *
 from .flow_channel_stats import *
+from .flow_feed_parsing import *
 from .flow_channel_topics import *
 from .flow_complete_videos import *
 from .flow_complete_channels import *
