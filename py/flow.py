@@ -59,7 +59,6 @@ class Flow(object):
         if tmp.shape[0]> 0:
             self.item_ids = list(tmp[self.idname].values) + self.item_ids
             self.item_ids = self.item_ids[:min([self.max_items, len(self.item_ids) ]) ]
-        print(f"{len(self.item_ids)} {self.idname}")
 
     def get_sql(self):
         '''
@@ -99,13 +98,18 @@ class Flow(object):
         self.reason      = self.results.result.reason
 
     def release(self, item_id):
-        # rm item_id from flow
+        '''
+            rm the item_id from the flow table
+        '''
         sql = f'''
             delete from flow where {self.idname} = '{item_id}' and flowname = '{self.flowname}'
         '''
         job.execute(sql)
 
     def update_query(self):
+        '''
+        reaplces the sql in the 'query' table by the sql defined in the code_sql
+        '''
         self.mode = 'script'
         self.get_sql()
         sql = f'''update query set sql = $${self.sql}$$ where queryname = '{self.flowname}';'''

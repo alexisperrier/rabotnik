@@ -44,15 +44,26 @@ class ChannelStat(Model):
         '''
         job.execute(sql)
 
+class IndexSearch(Model):
+    @classmethod
+    def upsert(cls,d):
+        sql = '''
+                insert into augment as au (video_id, tsv_lemma, created_at)
+                values ( '{d.video_id}', to_tsvector('french', $${d.refined_lemma}$$), now() )
+            on conflict (video_id) do update
+                set tsv_lemma = to_tsvector('french', $${d.refined_lemma}$$),
+                    created_at = now()
+                where au.video_id = '{d.video_id}'
+        '''
+
 class VideoStat(Model):
 
     @classmethod
-    def insert(cls,d):
+    def upsert(cls,d):
         sql = f'''
-                insert into video_stat_02 as cs
-                    (video_id,  views, source, viewed_at)
-                values
-                    ('{d.video_id}', {d.views}, '{d.source}', '{d.viewed_at}')
+                insert into video_stat_02 as cs (video_id,  views, source, viewed_at)
+                values ('{d.video_id}', {d.views}, '{d.source}', '{d.viewed_at}')
+                on conflict (video_id, viewed_at) DO NOTHING;
         '''
         job.execute(sql)
 

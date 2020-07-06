@@ -24,10 +24,9 @@ if __name__ == '__main__':
 
     print("\n" + "=="* 5 + f" \t{datetime.datetime.now()}  \t{flowname}")
 
-
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
     klass = globals()[classname]
-    op = klass(flowtag = True, mode = 'dbquery', counting = False)
+    op = klass(flowtag = True, mode = 'dbquery', counting = True)
     for operation in op.operations:
         if op.ok:
             getattr(op, operation)()
