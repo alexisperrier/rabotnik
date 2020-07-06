@@ -12,7 +12,9 @@ class Flow(object):
         self.counting   = kwargs['counting']
         self.flowtag    = kwargs['flowtag']
         self.max_items  = 50
+        self.ok         = True
         self.channel_growth = job.channel_growth
+        self.operations = ['get_items','freeze','query_api','decode','prune','ingest']
         self.get_sql()
         self.tune_sql()
 
@@ -28,20 +30,19 @@ class Flow(object):
         data = json.loads(self.results.result.content.decode('utf-8'))
         self.df = pd.io.json.json_normalize(data['items']).rename(columns = self.__class__.varnames_api2db)
 
-
     def execution_time(self):
         self.delta_time = (datetime.datetime.now() - self.start_time).seconds
         print("--"* 5 + " \t execution time {}m {}s".format(  int(self.delta_time / 60), str(self.delta_time -  int(self.delta_time / 60)*60).zfill(2) ))
 
     def freeze(self):
-        # add item_ids to flow, do nothing if item_id already in flow
-        for item_id in self.item_ids:
-            sql = f'''
-                insert into flow ({self.idname}, flowname,start_at)
-                values ('{item_id}','{self.flowname}',now())
-                on conflict ({self.idname}, flowname) DO NOTHING;
-            '''
-            job.execute(sql)
+        if self.flowtag:
+            for item_id in self.item_ids:
+                sql = f'''
+                    insert into flow ({self.idname}, flowname,start_at)
+                    values ('{item_id}','{self.flowname}',now())
+                    on conflict ({self.idname}, flowname) DO NOTHING;
+                '''
+                job.execute(sql)
 
     def get_items(self):
         '''
@@ -92,10 +93,10 @@ class Flow(object):
             self.release(item_id)
 
     def query_api(self):
-        self.results = APIrequest(self,job).get()
+        self.results     = APIrequest(self,job).get()
         self.status_code = self.results.result.status_code
-        self.ok = self.results.result.ok
-        self.reason = self.results.result.reason
+        self.ok          = self.results.result.ok
+        self.reason      = self.results.result.reason
 
     def release(self, item_id):
         # rm item_id from flow

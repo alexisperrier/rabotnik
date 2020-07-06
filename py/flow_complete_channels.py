@@ -32,6 +32,8 @@ class FlowCompleteChannels(Flow):
         self.fields     = f"items(id,snippet({snippet_str}),brandingSettings(channel/showRelatedChannels,channel/featuredChannelsUrls))"
         self.related_channel_ids = []
         self.channel_growth = True
+        self.operations.append('postop')
+
 
 
     def prune(self):            super().prune()
@@ -98,10 +100,9 @@ class FlowCompleteChannels(Flow):
 
     def postop(self):
         for channel_id in self.related_channel_ids:
-            print(d.channel_id)
-            Channel.create(d.channel_id, 'related channels')
-            Pipeline.create(idname = 'channel_id',item_id = d.channel_id)
-            Timer.create(idname = 'channel_id',item_id = d.channel_id)
+            Channel.create(channel_id, 'related channels')
+            Pipeline.create(idname = 'channel_id',item_id = channel_id)
+            Timer.create(idname = 'channel_id',item_id = channel_id)
 
 
 

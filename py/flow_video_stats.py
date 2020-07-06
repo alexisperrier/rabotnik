@@ -24,7 +24,6 @@ class FlowVideoStats(Flow):
     def get_sql(self):          super().get_sql()
     def query_api(self):        super().query_api()
     def release(self,item_id):  super().release(item_id)
-    # def unavailable(self):      super().unavailable()
     def update_query(self):     super().update_query()
 
     def tune_sql(self):
