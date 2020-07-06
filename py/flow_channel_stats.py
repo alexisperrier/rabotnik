@@ -24,6 +24,7 @@ class FlowChannelStats(Flow):
     def freeze(self):           super().freeze()
     def get_items(self):        super().get_items()
     def get_sql(self):          super().get_sql()
+    def postop(self):           super().postop()
     def query_api(self):        super().query_api()
     def release(self,item_id):  super().release(item_id)
     def update_query(self):     super().update_query()

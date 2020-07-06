@@ -29,14 +29,14 @@ class FlowCompleteVideos(Flow):
     def __init__(self,**kwargs):
         self.flowname = 'complete_videos'
         super().__init__(**kwargs)
-        self.max_items  = 10
+        # self.max_items  = 10
         self.endpoint   = 'videos'
         self.idname     = 'video_id'
         self.parts      = 'snippet,contentDetails,status,recordingDetails,topicDetails'
-        snippet_str = 'publishedAt,channelId,title,thumbnails/default/url,categoryId,tags,defaultAudioLanguage,defaultLanguage,description,liveBroadcastContent'
-        status_str  = "privacyStatus,uploadStatus,rejectionReason"
-        content_str = 'duration,caption'
-        self.fields = f"items(id,snippet({snippet_str}),contentDetails({content_str}),status({status_str}),topicDetails(topicCategories),recordingDetails(location))"
+        snippet_str     = 'publishedAt,channelId,title,thumbnails/default/url,categoryId,tags,defaultAudioLanguage,defaultLanguage,description,liveBroadcastContent'
+        status_str      = "privacyStatus,uploadStatus,rejectionReason"
+        content_str     = 'duration,caption'
+        self.fields     = f"items(id,snippet({snippet_str}),contentDetails({content_str}),status({status_str}),topicDetails(topicCategories),recordingDetails(location))"
 
     def prune(self):            super().prune()
     def execution_time(self):   super().execution_time()
@@ -45,7 +45,6 @@ class FlowCompleteVideos(Flow):
     def get_sql(self):          super().get_sql()
     def query_api(self):        super().query_api()
     def release(self,item_id):  super().release(item_id)
-    def unavailable(self):      super().unavailable()
     def update_query(self):     super().update_query()
 
     def code_sql(self):
