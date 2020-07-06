@@ -42,6 +42,7 @@ class Video(Model):
         sql = f'''
             update video set
                 published_at = '{d.published_at}',
+                channel_id = '{d.channel_id}',
                 title = $${d.title}$$,
                 summary = $${d.summary}$$,
                 thumbnail = '{d.thumbnail}',
@@ -55,7 +56,8 @@ class Video(Model):
                 default_audio_language = '{d.default_audio_language}',
                 default_language = '{d.default_language}',
                 wikitopics = $${d.wikitopics}$$,
-                seconds = {d.seconds}
+                seconds = {d.seconds},
+                retrieved_at = now()
             where video_id = '{d.video_id}'
         '''
         job.execute(sql)
@@ -70,25 +72,32 @@ class Pipeline(Model):
     @classmethod
     def create(cls, **kwargs):
         sql = f'''
-                insert into pipeline ({kwarg['idname']}, status)
+                insert into pipeline ({kwargs['idname']}, status)
                 values ('{kwargs['item_id']}','blank')
-                on conflict ({kwarg['idname']}) DO NOTHING;
+                on conflict ({kwargs['idname']}) DO NOTHING;
             '''
         job.execute(sql)
 
 class Channel(object):
     @classmethod
-    def create(cls, **kwargs):
+    def create(cls, channel_id, origin ):
         sql = f'''
-                insert into channel (channel_id)
-                values ('{kwargs['channel_id']}')
+                insert into channel (channel_id, origin)
+                values ('{channel_id}','{origin}')
                 on conflict (channel_id) DO NOTHING;
             '''
         job.execute(sql)
 
 
-
-
+class Timer(Model):
+    @classmethod
+    def create(cls, **kwargs):
+        sql = f'''
+                insert into timer ({kwargs['idname']}, rss_next_parsing)
+                values ('{kwargs['item_id']}',NOW())
+                on conflict ({kwargs['idname']}) DO NOTHING;
+            '''
+        job.execute(sql)
 
 
 

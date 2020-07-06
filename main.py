@@ -26,7 +26,6 @@ if __name__ == '__main__':
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
     klass = globals()[classname]
     op = klass(flowtag = True, mode = 'dbquery', counting = False)
-
     op.get_items()
     if op.flowtag:
         op.freeze()
@@ -35,8 +34,20 @@ if __name__ == '__main__':
         op.decode()
         op.prune()
         op.ingest()
+        if job.create_channel_from_video:
+            op.postop()
     else:
         print("nok", op.reason)
     op.execution_time()
+
+
+
+
+
+
+
+
+
+
 
 # ----
