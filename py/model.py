@@ -88,6 +88,22 @@ class Channel(object):
             '''
         job.execute(sql)
 
+    @classmethod
+    def update(cls,d):
+        sql = f'''
+            update channel set
+                created_at = '{d.created_at}',
+                title       = $${d.title}$$,
+                description = $${d.description}$$,
+                thumbnail   = '{d.thumbnail}',
+                show_related = '{d.show_related}',
+                custom_url  = '{d.custom_url}',
+                country     = '{d.country}',
+                retrieved_at = now()
+            where channel_id = '{d.channel_id}'
+        '''
+        job.execute(sql)
+
 
 class Timer(Model):
     @classmethod
@@ -99,6 +115,17 @@ class Timer(Model):
             '''
         job.execute(sql)
 
+
+
+class RelatedChannels(object):
+     @classmethod
+     def insert(cls, **kwargs):
+         sql = f'''
+                 insert into related_channels (channel_id, related_id, retrieved_at)
+                 values ('{kwargs['channel_id']}','{kwargs['related_id']}',NOW())
+                 on conflict (channel_id, related_id) DO NOTHING;
+             '''
+         job.execute(sql)
 
 
 # -------

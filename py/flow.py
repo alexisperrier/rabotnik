@@ -11,11 +11,13 @@ class Flow(object):
         self.counting   = kwargs['counting']
         self.flowtag    = kwargs['flowtag']
         self.max_items  = 50
+        self.channel_growth = job.channel_growth
         self.get_sql()
         self.tune_sql()
 
     def code_sql(self): pass
     def ingest(self):   pass
+    def postop(self):   pass
     def tune_sql(self): pass
 
     def decode(self):

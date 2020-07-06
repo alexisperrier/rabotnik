@@ -16,7 +16,7 @@ from py import *
 
 
 if __name__ == '__main__':
-    flowname  = 'complete_videos'
+    flowname  = 'complete_channels'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
     klass = globals()[classname]
     op = klass(flowtag = True, mode = 'local', counting = True)
@@ -28,7 +28,7 @@ if __name__ == '__main__':
         op.decode()
         op.prune()
         op.ingest()
-        if job.create_channel_from_video:
+        if op.channel_growth & hasattr(op, 'postop'):
             op.postop()
     else:
         print("nok", op.reason)

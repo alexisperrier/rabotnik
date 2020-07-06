@@ -3,6 +3,7 @@ from .flow import *
 from .flow_video_stats import *
 from .flow_channel_stats import *
 from .flow_complete_videos import *
+from .flow_complete_channels import *
 
 import pandas as pd
 import numpy as np
