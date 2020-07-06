@@ -108,7 +108,7 @@ class Flow(object):
 
     def update_query(self):
         '''
-        reaplces the sql in the 'query' table by the sql defined in the code_sql
+            replaces the sql in the 'query' table by the sql defined in the code_sql
         '''
         self.mode = 'script'
         self.get_sql()
