@@ -12,7 +12,6 @@ class FlowChannelStats(Flow):
     def __init__(self,**kwargs):
         self.flowname = 'channel_stats'
         super().__init__(**kwargs)
-        # self.max_items  = 50
         self.endpoint   = 'channels'
         self.idname     = 'channel_id'
         self.parts      = 'statistics'
@@ -24,7 +23,6 @@ class FlowChannelStats(Flow):
     def freeze(self):           super().freeze()
     def get_items(self):        super().get_items()
     def get_sql(self):          super().get_sql()
-    def postop(self):           super().postop()
     def query_api(self):        super().query_api()
     def release(self,item_id):  super().release(item_id)
     def update_query(self):     super().update_query()

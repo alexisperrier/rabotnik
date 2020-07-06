@@ -16,29 +16,18 @@ from py import *
 
 
 if __name__ == '__main__':
-    flowname  = 'channel_topics'
+    flowname  = 'complete_videos'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
     klass = globals()[classname]
 
-    op = klass(flowtag = True, mode = 'local', counting = True)
+    op = klass(flowtag = True, mode = 'dbquery', counting = True)
     for operation in op.operations:
-        print("-- operation",operation)
-        getattr(op, operation)()
+        if op.ok:
+            getattr(op, operation)()
+        else:
+            print("nok", op.reason,op.status_code)
+            break;
 
-    # op.get_items()
-    #
-    # if op.flowtag:
-    #     op.freeze()
-    #
-    # op.query_api()
-    # if op.ok:
-    #     op.decode()
-    #     op.prune()
-    #     op.ingest()
-    #     if op.channel_growth & hasattr(op, 'postop'):
-    #         op.postop()
-    # else:
-    #     print("nok", op.reason)
     op.execution_time()
 
 

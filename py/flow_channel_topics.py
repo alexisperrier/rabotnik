@@ -105,10 +105,7 @@ class FlowChannelTopics(Flow):
     def ingest(self):
         for i,d in self.df.iterrows():
             ChannelTopic.upsert(d)
-
-    # def tune_sql(self):
-    #     pass
-
+            self.release(d.channel_id)
 
 
 # -----------------

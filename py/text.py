@@ -19,7 +19,7 @@ class TextUtils(object):
         return string
 
     @classmethod
-    def extract_topic_categories(topics):
+    def extract_topic_categories(cls,topics):
         '''
         used extract topic from wikipedia link in video topic_categories
         '''

@@ -37,6 +37,8 @@ class FlowCompleteVideos(Flow):
         status_str      = "privacyStatus,uploadStatus,rejectionReason"
         content_str     = 'duration,caption'
         self.fields     = f"items(id,snippet({snippet_str}),contentDetails({content_str}),status({status_str}),topicDetails(topicCategories),recordingDetails(location))"
+        if self.channel_growth:
+            self.operations.append('postop')
 
     def prune(self):            super().prune()
     def execution_time(self):   super().execution_time()
