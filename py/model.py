@@ -4,6 +4,28 @@ class Model(object):
     def __init__(self):
         pass
 
+class ChannelTopic(Model):
+
+    @classmethod
+    def upsert(cls,d):
+        if d.topics is None:
+            sql = f'''
+                    insert into topic as tpc (channel_id,  topics, created_at)
+                    values ('{d.channel_id}',Null, now())
+                on conflict (channel_id) do update
+                    set topics = Null, created_at = now()
+                    where tpc.channel_id = '{d.channel_id}'
+            '''
+        else:
+            sql = f'''
+                    insert into topic as tpc (channel_id,  topics, created_at)
+                    values ('{d.channel_id}','{d.topics}', now())
+                on conflict (channel_id) do update
+                    set topics = '{d.topics}', created_at = now()
+                    where tpc.channel_id = '{d.channel_id}'
+            '''
+        job.execute(sql)
+
 class ChannelStat(Model):
 
     @classmethod
