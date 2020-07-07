@@ -85,9 +85,9 @@ class FlowFeedParsing(Flow):
 
             channels.append({
                 'channel_id' : channel_id,
-                'status_code': str(result.status),
+                'status_code': result.status,
                 'ok'         : (result.status == 200) & (len(result.entries) > 0),
-                'reason'     : str(result.bozo),
+                'reason'     : result.bozo,
                 'frequency'  : frequency,
                 'channel_status'  : channel_status,
                 'activity_score'  : activity_score
