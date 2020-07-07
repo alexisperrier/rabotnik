@@ -11,7 +11,7 @@ class FlowChannelTopics(Flow):
     def __init__(self,**kwargs):
         self.flowname = 'channel_topics'
         super().__init__(**kwargs)
-        self.max_items  = 10
+        self.max_items  = 20
         self.idname     = 'channel_id'
         self.operations = ['get_items','freeze','compute','ingest']
         self.nlp = spacy.load("fr_core_news_sm")

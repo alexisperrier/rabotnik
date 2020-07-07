@@ -23,7 +23,6 @@ class FlowFeedParsing(Flow):
         self.flowname = 'feed_parsing'
         super().__init__(**kwargs)
         self.idname = 'channel_id'
-        self.max_items  = 10
         self.operations = ['get_items','parse','ingest']
 
     def execution_time(self):   super().execution_time()

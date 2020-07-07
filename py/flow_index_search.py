@@ -8,7 +8,7 @@ class FlowIndexSearch(Flow):
     def __init__(self,**kwargs):
         self.flowname = 'index_search'
         super().__init__(**kwargs)
-        self.max_items  = 10
+        self.max_items  = 100
         self.idname     = 'video_id'
         self.operations = ['get_items','freeze','compute','ingest']
         self.nlp = spacy.load("fr_core_news_sm")
