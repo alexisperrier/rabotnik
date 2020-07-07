@@ -11,7 +11,6 @@ class FlowVideoStats(Flow):
     def __init__(self,**kwargs):
         self.flowname = 'video_stats'
         super().__init__(**kwargs)
-        # self.max_items  = 50
         self.endpoint   = 'videos'
         self.idname     = 'video_id'
         self.parts      = 'statistics'

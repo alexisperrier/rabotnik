@@ -24,7 +24,6 @@ class FlowCompleteChannels(Flow):
     def __init__(self,**kwargs):
         self.flowname = 'complete_channels'
         super().__init__(**kwargs)
-        # self.max_items  = 2
         self.endpoint   = 'channels'
         self.idname     = 'channel_id'
         self.parts      = 'snippet,brandingSettings'

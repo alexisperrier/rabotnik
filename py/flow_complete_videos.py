@@ -29,7 +29,6 @@ class FlowCompleteVideos(Flow):
     def __init__(self,**kwargs):
         self.flowname = 'complete_videos'
         super().__init__(**kwargs)
-        # self.max_items  = 10
         self.endpoint   = 'videos'
         self.idname     = 'video_id'
         self.parts      = 'snippet,contentDetails,status,recordingDetails,topicDetails'
