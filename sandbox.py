@@ -14,8 +14,10 @@ import datetime
 
 from py import *
 
+from pathlib import Path
 
 if __name__ == '__main__':
+
     flowname  = 'feed_parsing'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
     klass = globals()[classname]

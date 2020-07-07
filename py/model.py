@@ -59,13 +59,14 @@ class IndexSearch(Model):
 class VideoStat(Model):
 
     @classmethod
-    def upsert(cls,d):
+    def create(cls,d):
         sql = f'''
                 insert into video_stat_02 as cs (video_id,  views, source, viewed_at)
                 values ('{d.video_id}', {d.views}, '{d.source}', '{d.viewed_at}')
                 on conflict (video_id, viewed_at) DO NOTHING;
         '''
         job.execute(sql)
+        return job.db.cur.rowcount
 
 
 class Video(Model):
@@ -95,8 +96,33 @@ class Video(Model):
         '''
         job.execute(sql)
 
+    @classmethod
+    def create(cls,d):
+        sql = f'''
+            insert into video
+                (video_id,channel_id,title,summary,origin,published_at)
+            values
+                ('{d.video_id}', '{d.channel_id}',$${d.title}$$,$${d.summary}$$,'{d.origin}','{d.published_at}')
+            on conflict (video_id) DO NOTHING;
+        '''
+        job.execute(sql)
+        return job.db.cur.rowcount
+
+
 
 class Pipeline(Model):
+    @classmethod
+    def update_channel_from_feed(cls, d):
+        sql = f'''
+            update pipeline set
+                status = '{d.channel_status}',
+                rss_frequency = '{d.frequency}',
+                activity_score = {d.activity_score}
+            where channel_id = '{d.channel_id}'
+        '''
+
+        job.execute(sql)
+
     @classmethod
     def update_status(cls, **kwargs):
         sql = f" update pipeline set status = '{kwargs['status']}' where {kwargs['idname']}= '{kwargs['item_id']}' "
@@ -125,7 +151,7 @@ class Channel(object):
     def update(cls,d):
         sql = f'''
             update channel set
-                created_at = '{d.created_at}',
+                created_at  = '{d.created_at}',
                 title       = $${d.title}$$,
                 description = $${d.description}$$,
                 thumbnail   = '{d.thumbnail}',
@@ -139,6 +165,19 @@ class Channel(object):
 
 
 class Timer(Model):
+    @classmethod
+    def update_channel_from_feed(cls, d):
+        error = '' if d.ok else ' '.join([d.status_code, d.empty, d.reason])
+        sql = f''' update timer set
+                    counter = counter +1,
+                    error = $${error}$$,
+                    rss_last_parsing = NOW() ,
+                    rss_next_parsing = NOW() + interval '{d.frequency}'
+                where channel_id = '{d.channel_id}'
+        '''
+        job.execute(sql)
+
+
     @classmethod
     def create(cls, **kwargs):
         sql = f'''
