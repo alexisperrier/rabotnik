@@ -31,7 +31,7 @@ class FlowCompleteChannels(Flow):
         snippet_str     = 'title,description,publishedAt,customUrl,thumbnails/default/url,country'
         self.fields     = f"items(id,snippet({snippet_str}),brandingSettings(channel/showRelatedChannels,channel/featuredChannelsUrls))"
         self.related_channel_ids = []
-        self.channel_growth = True
+        self.channel_growth = False
         self.operations.append('postop')
 
 

@@ -85,10 +85,7 @@ class Flow(object):
         print(f"{len(deleted_ids)} unaccessible items: {deleted_ids}")
 
         for item_id in deleted_ids[:1]:
-            Pipeline.update_status(idname = self.idname,  item_id = item_id, status = 'unavailable')
-            sql = f" update pipeline set status = 'unavailable' where {self.idname} = '{item_id}' "
-            job.execute(sql)
-
+            Pipeline.update_status(idname = self.idname, item_id = item_id, status = 'unavailable')
             self.release(item_id)
 
     def query_api(self):

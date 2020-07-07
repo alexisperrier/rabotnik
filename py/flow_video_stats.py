@@ -53,7 +53,7 @@ class FlowVideoStats(Flow):
     def ingest(self):
         print(f"== {self.df.shape} to insert")
         for i,d in self.df.iterrows():
-            VideoStat.upsert(d)
+            VideoStat.create(d)
             self.release(d.video_id)
 
 

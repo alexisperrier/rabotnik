@@ -2,10 +2,9 @@
 Feed parsing
 '''
 from .flow import *
-import datetime
-import isodate
 from .text import *
-import distutils.util
+import datetime, time
+import feedparser
 
 class FlowFeedParsing(Flow):
 
@@ -24,12 +23,9 @@ class FlowFeedParsing(Flow):
         self.flowname = 'feed_parsing'
         super().__init__(**kwargs)
         self.idname = 'channel_id'
-        self.max_items  = 2
-        # self.operations = ['get_items','freeze','query_api','decode','prune','ingest']
-        self.operations = ['get_items','freeze','parsing']
-        # self.operations.append('postop')
+        self.max_items  = 10
+        self.operations = ['get_items','parse','ingest']
 
-    def prune(self):            super().prune()
     def execution_time(self):   super().execution_time()
     def freeze(self):           super().freeze()
     def get_items(self):        super().get_items()
@@ -37,6 +33,7 @@ class FlowFeedParsing(Flow):
     def query_api(self):        super().query_api()
     def release(self,item_id):  super().release(item_id)
     def update_query(self):     super().update_query()
+    def tune_sql(self):         pass
 
     def code_sql(self):
         return '''
@@ -57,52 +54,91 @@ class FlowFeedParsing(Flow):
              order by t.rss_next_parsing asc
          '''
 
-    def parsing(self):
-        result    = feedparser.parse( FlowFeedParsing.BASE_URL +  self.channel_id )
-        self.status_code = result.status
-        self.ok          = (result.status == 200) & (len(result.entries) > 0)
-        self.reason      = result.bozo
-        self.videos      = result.entries
+    def parse(self):
 
-    def decode(self):
-        self.df = pd.io.json.json_normalize(self.videos)[self.__class__.varnames_feed2db.keys()]
-        self.df.rename(columns = self.__class__.varnames_feed2db, inplace = True)
-        self.df['origin'] = 'feed_parsing'
-        self.df.sort_values(by = 'published_at', ascending = False, inplace = True)
-        self.df.reset_index(inplace = True, drop = True)
+        channels = []
+        videos   = {}
 
-        self.activity_score()
+        for channel_id in self.item_ids:
+            result    = feedparser.parse( FlowFeedParsing.BASE_URL +  channel_id )
+
+            if (result.status == 200) & (len(result.entries) > 0):
+                entries = pd.io.json.json_normalize(result.entries)[self.__class__.varnames_feed2db.keys()]
+                entries.rename(columns = self.__class__.varnames_feed2db, inplace = True)
+                entries['origin']       = 'feed_parsing'
+                entries['source']       = 'rss'
+                entries['viewed_at']    = datetime.datetime.now().strftime('%Y-%m-%d')
+                entries['title']        = entries.title.apply(lambda d : TextUtils.valid_string_db(d) )
+                entries['summary']      = entries.summary.apply(lambda d : TextUtils.valid_string_db(d) )
+
+                entries.sort_values(by = 'published_at', ascending = False, inplace = True)
+                entries.reset_index(inplace = True, drop = True)
+
+                videos[channel_id]= entries
+                frequency, channel_status, activity_score = self.__class__.activity_score(entries)
+
+            elif (result.status == 200) & (len(result.entries) == 0):
+                print("empty feed")
+                frequency, channel_status, activity_score = '30 days', 'empty_feed', 0
+            else:
+                print("feed error", result.status, result.bozo)
+                frequency, channel_status, activity_score = '100 years', 'feed_error', 0
+
+            channels.append({
+                'channel_id' : channel_id,
+                'status_code': str(result.status),
+                'ok'         : (result.status == 200) & (len(result.entries) > 0),
+                'reason'     : result.bozo,
+                'frequency'  : frequency,
+                'channel_status'  : channel_status,
+                'activity_score'  : activity_score
+            })
+
+        self.channels = pd.DataFrame(channels)
+        self.videos   = videos
 
     def ingest(self):
-        # update pipeline and timer
-        sql = f'''
-            update pipeline
-            set status = '{self.channel_status}',
-                rss_frequency = '{self.rss_frequency}',
-                activity_score = {self.activity_score}
-            where channel_id = '{self.channel_id}'
-        '''
-        job.execute(sql)
+        videos_created = 0
+        n_feed_error = 0
+        n_stat = 0
+        for i,d in self.channels.iterrows():
+            if not d.ok:
+                n_feed_error +=1
+                print("======= channel feed not ok")
+                print(d)
 
+            Timer.update_channel_from_feed(d)
+            Pipeline.update_channel_from_feed(d)
+            self.release(d.channel_id)
 
+        for channel_id, videos in self.videos.items():
+            print("==\t",channel_id)
+            # get list of videos already in the db
+            sql = f'''
+                select video_id from video where video_id in ('{"','".join(videos.video_id.values)}')
+            '''
+            existing_video_ids = pd.read_sql(sql, job.db.conn).video_id.values
 
+            for i,d in videos.iterrows():
+                n_stat += VideoStat.create(d)
+                if d.video_id not in existing_video_ids:
+                    n_created = Video.create(d)
+                    if n_created > 0:
+                        print("--", d.video_id, d.title[:100])
+                    videos_created += n_created
+                    Pipeline.create(idname = 'video_id',item_id = d.video_id)
+                    Timer.create(idname = 'video_id',item_id = d.video_id)
 
-        print(f"== {self.df.shape} to insert")
-        # for i,d in self.df.iterrows():
-        #     print(d.channel_id)
-        #     Channel.update(d)
-        #     Pipeline.update_status(idname = 'channel_id',  item_id = d.channel_id, status = 'active')
-        #     sql = f"update pipeline set channel_complete = True where channel_id = '{d.channel_id}'"
-        #     job.execute(sql)
-        #     self.release(d.channel_id)
+        print(f"{videos_created} new videos \t {n_feed_error} feed errors \t {n_stat} new video stats")
 
-    def tune_sql(self):
-        pass
+    @classmethod
+    def activity_score(cls,entries):
+        n_videos = entries.shape[0]
+        if n_videos == 0:
+            return '30 days', 'empty_feed', 0
 
-    def activity_score(self):
-        n_videos = self.df.shape[0]
-        recent  =  time.mktime( self.df.loc[0].published_parsed )
-        oldest  =  time.mktime( self.df.loc[ n_videos - 1 ].published_parsed )
+        recent  =  time.mktime( entries.loc[0].published_parsed )
+        oldest  =  time.mktime( entries.loc[ n_videos - 1 ].published_parsed )
         now     =  time.mktime(datetime.datetime.now().timetuple())
 
         age_recent      = divmod(now - recent, 24*3600)[0]
@@ -133,9 +169,7 @@ class FlowFeedParsing(Flow):
                 channel_status  = 'frenetic'
                 frequency       = '2 hours'
 
-        self.rss_frequency  = frequency
-        self.channel_status = channel_status
-        self.activity_score = activity_score
+        return frequency, channel_status, activity_score
 
 
 
