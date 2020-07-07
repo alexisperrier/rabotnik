@@ -35,7 +35,6 @@ class FlowCompleteChannels(Flow):
             self.operations.append('postop')
 
 
-
     def prune(self):            super().prune()
     def execution_time(self):   super().execution_time()
     def freeze(self):           super().freeze()
