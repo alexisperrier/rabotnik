@@ -39,7 +39,7 @@ class FlowIndexSearch(Flow):
          '''
 
     def compute(self):
-        if (not self.df.empty):
+        if (not self.data.empty):
             results = []
             stopwords_rgx = TextUtils.stopwords_rgx()
             self.df = self.data.copy()
