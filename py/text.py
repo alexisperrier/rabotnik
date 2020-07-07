@@ -7,6 +7,15 @@ import os
 from nltk.tokenize import word_tokenize
 from .job import *
 
+class LangDetector(object):
+
+    def __init__(self):
+        self.model = fasttext.load_model( os.path.join(job.project_root, 'model/lid.176.bin'));
+
+    def lang(self, text):
+        return self.model.predict(text.replace("\n",' '))[0][0].split('__')[-1]
+
+
 class TextUtils(object):
     @classmethod
     def valid_string_db(cls,string):

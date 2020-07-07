@@ -31,7 +31,7 @@ if __name__ == '__main__':
         if op.ok:
             getattr(op, operation)()
         else:
-            print("nok", op.reason,op.status_code)
+            print("nok", getattr(op, 'reason', ''), getattr(op, 'status_code', ''))
             break;
 
     op.execution_time()
