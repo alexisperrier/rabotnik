@@ -167,7 +167,7 @@ class Channel(object):
 class Timer(Model):
     @classmethod
     def update_channel_from_feed(cls, d):
-        error = '' if d.ok else ' '.join([d.status_code, d.empty, d.reason])
+        error = '' if d.ok else ' '.join([str(d.status_code), d.empty, d.reason])
         sql = f''' update timer set
                     counter = counter +1,
                     error = $${error}$$,

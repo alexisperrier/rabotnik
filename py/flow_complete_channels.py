@@ -31,7 +31,8 @@ class FlowCompleteChannels(Flow):
         self.fields     = f"items(id,snippet({snippet_str}),brandingSettings(channel/showRelatedChannels,channel/featuredChannelsUrls))"
         self.related_channel_ids = []
         self.channel_growth = False
-        self.operations.append('postop')
+        if self.channel_growth:
+            self.operations.append('postop')
 
 
 
@@ -104,10 +105,6 @@ class FlowCompleteChannels(Flow):
             Channel.create(channel_id, 'related channels')
             Pipeline.create(idname = 'channel_id',item_id = channel_id)
             Timer.create(idname = 'channel_id',item_id = channel_id)
-
-
-
-
 
 
 
