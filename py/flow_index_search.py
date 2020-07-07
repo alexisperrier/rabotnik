@@ -39,17 +39,17 @@ class FlowIndexSearch(Flow):
          '''
 
     def compute(self):
-
-        results = []
-        stopwords_rgx = TextUtils.stopwords_rgx()
-        self.df = self.data.copy()
-        self.df['text'] = self.df.text.apply(lambda txt: stopwords_rgx.sub('', txt) )
-        self.df['text'] = self.df.text.apply(lambda txt : TextUtils.lemmatize(self.nlp(txt)))
-        self.df['refined_lemma'] = self.df.text.apply(lambda txt :
-                Refine( txt,
-                        ['html', 'urls', 'urlswww','punctuation', 'remove_emoji','xao', 'digits']
-                    ).text.lower().replace('"',' ')
-            )
+        if (not self.df.empty):
+            results = []
+            stopwords_rgx = TextUtils.stopwords_rgx()
+            self.df = self.data.copy()
+            self.df['text'] = self.df.text.apply(lambda txt: stopwords_rgx.sub('', txt) )
+            self.df['text'] = self.df.text.apply(lambda txt : TextUtils.lemmatize(self.nlp(txt)))
+            self.df['refined_lemma'] = self.df.text.apply(lambda txt :
+                    Refine( txt,
+                            ['html', 'urls', 'urlswww','punctuation', 'remove_emoji','xao', 'digits']
+                        ).text.lower().replace('"',' ')
+                )
 
     def ingest(self):
         for i,d in self.df.iterrows():
