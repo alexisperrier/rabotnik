@@ -28,7 +28,10 @@ class Flow(object):
             Content returned by the API is transformed into a dataframe with proper column names
         '''
         data = json.loads(self.results.result.content.decode('utf-8'))
-        self.df = pd.io.json.json_normalize(data['items']).rename(columns = self.__class__.varnames_api2db)
+        if 'items' in data.keys():
+            self.df = pd.io.json.json_normalize(data['items']).rename(columns = self.__class__.varnames_api2db)
+        else:
+            self.df = pd.DataFrame(columns = [self.idname])
 
     def execution_time(self):
         self.delta_time = (datetime.datetime.now() - self.start_time).seconds
