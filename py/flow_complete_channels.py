@@ -89,7 +89,6 @@ class FlowCompleteChannels(Flow):
             print(f"{data.shape[0]} channels have related channels")
             for i,d in data.iterrows():
                 for related_id in d.related_channel_ids:
-                    # print(d.channel_id, related_id)
                     RelatedChannels.insert(channel_id = d.channel_id, related_id = related_id)
                     self.related_channel_ids.append(related_id)
         else:
