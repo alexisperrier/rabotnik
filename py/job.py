@@ -2,14 +2,15 @@ import os, json
 import distutils.util
 from .db import *
 from .api import *
+from pathlib import Path
 
 class Job(object):
 
     config_file_path = './config/config_rabotnik.json'
 
     def __init__(self):
-
-        with open(Job.config_file_path) as f:
+        config_path = os.path.join(os.path.dirname(__file__),'..', Job.config_file_path  )
+        with open(config_path) as f:
             config = json.load(f)
 
         self.project_root   = config['project_root_path']
@@ -22,7 +23,6 @@ class Job(object):
         self.verbose    = bool(distutils.util.strtobool(config['job_verbose']))
         self.db         = DbUtils(config)
         self.apikey     = APIkey(self).apikey
-        self.config     = config
 
     def execute(self, sql):
         if self.db.conn.closed == 1:
