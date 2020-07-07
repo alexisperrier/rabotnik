@@ -62,20 +62,21 @@ class FlowCompleteChannels(Flow):
 
     def decode(self):
         super().decode()
-        for col in ['custom_url','country']:
-            if col in self.df.columns:
-                self.df.loc[self.df[col].isna(), col] = ''
-            else:
-                self.df[col] = ''
+        if (not self.df.empty):
+            for col in ['custom_url','country']:
+                if col in self.df.columns:
+                    self.df.loc[self.df[col].isna(), col] = ''
+                else:
+                    self.df[col] = ''
 
-        self.df.loc[ self.df.show_related.isna(), 'show_related']  = ''
-        self.df['title']        = self.df.title.apply(lambda d : TextUtils.valid_string_db(d) )
-        self.df['description']  = self.df.description.apply(lambda d : TextUtils.valid_string_db(d) )
+            self.df.loc[ self.df.show_related.isna(), 'show_related']  = ''
+            self.df['title']        = self.df.title.apply(lambda d : TextUtils.valid_string_db(d) )
+            self.df['description']  = self.df.description.apply(lambda d : TextUtils.valid_string_db(d) )
 
     def ingest(self):
         print(f"== {self.df.shape} to insert")
         for i,d in self.df.iterrows():
-            print(d.channel_id)
+            # print(d.channel_id)
             Channel.update(d)
             Pipeline.update_status(idname = 'channel_id',  item_id = d.channel_id, status = 'active')
             sql = f"update pipeline set channel_complete = True where channel_id = '{d.channel_id}'"
@@ -88,7 +89,7 @@ class FlowCompleteChannels(Flow):
             print(f"{data.shape[0]} channels have related channels")
             for i,d in data.iterrows():
                 for related_id in d.related_channel_ids:
-                    print(d.channel_id, related_id)
+                    # print(d.channel_id, related_id)
                     RelatedChannels.insert(channel_id = d.channel_id, related_id = related_id)
                     self.related_channel_ids.append(related_id)
         else:
@@ -99,6 +100,7 @@ class FlowCompleteChannels(Flow):
         pass
 
     def postop(self):
+        print(f"insert {len(self.related_channel_ids)} related channels")
         for channel_id in self.related_channel_ids:
             Channel.create(channel_id, 'related channels')
             Pipeline.create(idname = 'channel_id',item_id = channel_id)

@@ -18,7 +18,6 @@ class FlowTrim(Flow):
     def execution_time(self):   super().execution_time()
     def code_sql(self): pass
 
-
     def helm(self):
         print("==" * 5, "helm")
         for task in self.helm_tasks:
