@@ -1,46 +1,21 @@
 from .flow import *
-from .flow_video_stats import *
-from .flow_channel_stats import *
-from .flow_channel_topics import *
-from .flow_complete_videos import *
-from .flow_complete_channels import *
 
-class FlowTrim(Flow):
+class FlowCare(Flow):
 
     def __init__(self,**kwargs):
-        self.flowname   = 'trim'
+        self.flowname   = 'care'
         kwargs['mode']  = 'local'
         super().__init__(**kwargs)
-        self.operations = ['helm','trim']
-        self.trim_tasks = ['enforce_border','enforce_lang','set_pubdate','flow_cleanup','helm_cleanup','cold_videos']
-        self.helm_tasks = pd.read_sql("select queryname from query", job.db.conn)['queryname'].values
+        self.operations = ['care']
+        self.care_tasks = ['enforce_border','enforce_lang','set_pubdate','flow_cleanup','helm_cleanup','cold_videos']
 
     def execution_time(self):   super().execution_time()
     def code_sql(self): pass
 
-    def helm(self):
-        print("==" * 5, "helm")
-        for task in self.helm_tasks:
-            try:
-                start_time      = datetime.datetime.now()
-                classname = 'Flow'+ ''.join(word.title() for word in task.split('_'))
-                klass = globals()[classname]
-                tk = klass(flowtag = False, mode = 'dbquery', counting = True)
-                tk.get_items()
-                print(f"- {task}: \t", tk.data.shape[0], f"rows \t {(datetime.datetime.now() - start_time).total_seconds()}s")
-                sql = f'''
-                    insert into helm (jobname, count_, created_at)
-                    values ('{task}', {tk.data.shape[0]}, now())
-                '''
-                job.execute(sql)
-            except:
-                pass
-
-    def trim(self):
-        print("==" * 5, "trim")
-        for task in self.trim_tasks:
+    def care(self):
+        for task in self.care_tasks:
             job.execute(  getattr(self, f"sql_{task}")() )
-            print(f"- {task}: {job.db.cur.rowcount} rows")
+            print(f"- {task}: \t{job.db.cur.rowcount} rows")
 
     def sql_enforce_border(self):
         '''

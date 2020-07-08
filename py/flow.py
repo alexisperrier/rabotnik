@@ -62,7 +62,8 @@ class Flow(object):
         if tmp.shape[0]> 0:
             self.item_ids = list(tmp[self.idname].values) + self.item_ids
             self.item_ids = self.item_ids[:min([self.max_items, len(self.item_ids) ]) ]
-        print(f"{len(self.item_ids)} items")
+        if not self.counting:
+            print(f"{len(self.item_ids)} items")
         self.ok = len(self.item_ids) > 0
         self.reason = 'No more items'
 
