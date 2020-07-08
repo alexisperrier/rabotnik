@@ -12,7 +12,7 @@ class FlowTrim(Flow):
         kwargs['mode']  = 'local'
         super().__init__(**kwargs)
         self.operations = ['helm','trim']
-        self.trim_tasks = ['enforce_border','set_pubdate','flow_cleanup','helm_cleanup','cold_videos']
+        self.trim_tasks = ['enforce_border','enforce_lang','set_pubdate','flow_cleanup','helm_cleanup','cold_videos']
         self.helm_tasks = pd.read_sql("select queryname from query", job.db.conn)['queryname'].values
 
     def execution_time(self):   super().execution_time()
@@ -56,6 +56,24 @@ class FlowTrim(Flow):
                     from channel
                     where (country is not null) and (country !='') and (country != 'FR')
                 ) and b.id is null
+            )
+            on conflict (channel_id) DO NOTHING
+        '''
+
+    def sql_enforce_lang(self):
+        '''
+            All channels with a country  Null, '' and lang !=fr and lang_conf > 02 are inserted into border
+        '''
+        return '''
+            insert into border (channel_id)
+            (        select ch.channel_id
+                        from channel ch
+                        join pipeline pp on pp.channel_id = ch.channel_id
+                        left join border b on b.channel_id = ch.channel_id
+                        where (ch.country is null or ch.country = '')
+                            and b.id is null
+                            and pp.lang !='fr'
+                            and pp.lang_conf > 0.2
             )
             on conflict (channel_id) DO NOTHING
         '''
