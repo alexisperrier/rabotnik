@@ -120,13 +120,20 @@ class Pipeline(Model):
                 activity_score = {d.activity_score}
             where channel_id = '{d.channel_id}'
         '''
-
         job.execute(sql)
+        return job.db.cur.rowcount
 
     @classmethod
     def update_status(cls, **kwargs):
         sql = f" update pipeline set status = '{kwargs['status']}' where {kwargs['idname']}= '{kwargs['item_id']}' "
         job.execute(sql)
+        return job.db.cur.rowcount
+
+    @classmethod
+    def update_lang(cls, **kwargs):
+        sql = f" update pipeline set lang = '{kwargs['lang']}', lang_conf = '{kwargs['lang_conf']}' where {kwargs['idname']}= '{kwargs['item_id']}' "
+        job.execute(sql)
+        return job.db.cur.rowcount
 
     @classmethod
     def create(cls, **kwargs):
@@ -136,6 +143,8 @@ class Pipeline(Model):
                 on conflict ({kwargs['idname']}) DO NOTHING;
             '''
         job.execute(sql)
+        return job.db.cur.rowcount
+
 
 class Channel(object):
     @classmethod
@@ -146,6 +155,7 @@ class Channel(object):
                 on conflict (channel_id) DO NOTHING;
             '''
         job.execute(sql)
+        return job.db.cur.rowcount
 
     @classmethod
     def update(cls,d):
@@ -198,6 +208,8 @@ class RelatedChannels(object):
                  on conflict (channel_id, related_id) DO NOTHING;
              '''
          job.execute(sql)
+         return job.db.cur.rowcount
+
 
 
 # -------
