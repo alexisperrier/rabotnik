@@ -61,7 +61,6 @@ class FlowChannelTopics(Flow):
 
             df = pd.read_sql(sql, job.db.conn).sort_values(by = 'views', ascending = False).reset_index(drop = True)
             print("----",df.shape)
-            print(df.head())
 
             if ~df.empty and (df.shape[0] > 5):
                 if df.shape[0] > 50:
@@ -78,7 +77,6 @@ class FlowChannelTopics(Flow):
 
                 corpus = list(set(df.text.values))
                 n_components = np.min( [int(len(corpus) / 3), 10])
-                print(df.head())
                 tfidf_vectorizer = TfidfVectorizer(
                         max_df          = 0.5,
                         min_df          = 0,
