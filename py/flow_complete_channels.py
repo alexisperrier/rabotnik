@@ -30,7 +30,7 @@ class FlowCompleteChannels(Flow):
         snippet_str     = 'title,description,publishedAt,customUrl,thumbnails/default/url,country'
         self.fields     = f"items(id,snippet({snippet_str}),brandingSettings(channel/showRelatedChannels,channel/featuredChannelsUrls))"
         self.related_channel_ids = []
-        self.channel_growth = False
+        # self.channel_growth = False
         if self.channel_growth:
             self.operations.append('postop')
 
@@ -50,7 +50,7 @@ class FlowCompleteChannels(Flow):
             from channel ch
                 join pipeline p on p.channel_id = ch.channel_id
                 left join border b on b.channel_id = ch.channel_id
-                left join flow as fl on fl.channel_id = ch.channel_id
+                left join flow as fl on fl.channel_id = ch.channel_id and fl.flowname = 'complete_channels'
             where p.channel_id is not null
                 and not p.channel_complete
                 and p.status in ('active','energised','frenetic','sluggish','steady','asleep','cold','dormant','blank')
@@ -61,6 +61,7 @@ class FlowCompleteChannels(Flow):
 
     def decode(self):
         super().decode()
+        ld = LangDetector()
         if (not self.df.empty):
             for col in ['custom_url','country']:
                 if col in self.df.columns:
@@ -68,16 +69,22 @@ class FlowCompleteChannels(Flow):
                 else:
                     self.df[col] = ''
 
+            self.df['lang_predicted'] = self.df.apply(lambda d : ld.predict(  ' '.join([d.title,d.description]).replace("\n",' ')) , axis = 1)
+            self.df['lang_conf'] = self.df.lang_predicted.apply(lambda d : d['conf'])
+            self.df['lang'] = self.df.lang_predicted.apply(lambda d : d['lang'])
+
             self.df.loc[ self.df.show_related.isna(), 'show_related']  = ''
             self.df['title']        = self.df.title.apply(lambda d : TextUtils.valid_string_db(d) )
             self.df['description']  = self.df.description.apply(lambda d : TextUtils.valid_string_db(d) )
 
+
     def ingest(self):
         print(f"== {self.df.shape} to insert")
         for i,d in self.df.iterrows():
-            # print(d.channel_id)
+            print(d.channel_id)
             Channel.update(d)
             Pipeline.update_status(idname = 'channel_id',  item_id = d.channel_id, status = 'active')
+            Pipeline.update_lang(idname = 'channel_id',  item_id = d.channel_id, lang = d.lang, lang_conf = d.lang_conf)
             sql = f"update pipeline set channel_complete = True where channel_id = '{d.channel_id}'"
             job.execute(sql)
             self.release(d.channel_id)
@@ -98,11 +105,13 @@ class FlowCompleteChannels(Flow):
         pass
 
     def postop(self):
-        print(f"insert {len(self.related_channel_ids)} related channels")
+        print(f"creating {len(self.related_channel_ids)} related channels if not exists")
+        channel_count = 0
         for channel_id in self.related_channel_ids:
-            Channel.create(channel_id, 'related channels')
+            channel_count += Channel.create(channel_id, 'related channels')
             Pipeline.create(idname = 'channel_id',item_id = channel_id)
             Timer.create(idname = 'channel_id',item_id = channel_id)
+        print(f"{channel_count} related channels created")
 
 
 

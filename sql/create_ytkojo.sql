@@ -64,6 +64,7 @@ create table pipeline (
     video_id char(11),
     channel_id char(24),
     lang varchar(10),
+    lang_conf float default Null,
     status varchar default 'blank',
     blank BOOLEAN default True,
     complete BOOLEAN default False,
@@ -76,6 +77,7 @@ create table pipeline (
     created_at timestamptz default now()
 );
 CREATE UNIQUE INDEX unique_piepline_channel_id ON pipeline(channel_id);
+ALTER TABLE pipeline  ADD COLUMN lang_conf float default Null;
 ALTER TABLE pipeline  ALTER COLUMN lang varchar(10);
 ALTER TABLE pipeline  ADD COLUMN activity_score float default 0;
 ALTER TABLE pipeline  ADD COLUMN channel_complete boolean default False;

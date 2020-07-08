@@ -6,14 +6,26 @@ import emoji
 import os
 from nltk.tokenize import word_tokenize
 from .job import *
+import fasttext
+import numpy as np
 
 class LangDetector(object):
 
     def __init__(self):
         self.model = fasttext.load_model( os.path.join(job.project_root, 'model/lid.176.bin'));
 
-    def lang(self, text):
-        return self.model.predict(text.replace("\n",' '))[0][0].split('__')[-1]
+    def predict(self, text):
+        wordcount = len(text.split())
+        if wordcount > 2:
+            res = self.model.predict(text.replace("\n",' '))
+            self.lang = res[0][0].split('__')[-1]
+            self.conf = res[1][0]
+            self.predicted =  {'lang': res[0][0].split('__')[-1], 'conf': res[1][0] }
+        else:
+            self.predicted =  {'lang': '--', 'conf': 0 }
+            self.lang = None
+            self.conf = np.nan
+        return self.predicted
 
 
 class TextUtils(object):
