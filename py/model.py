@@ -60,13 +60,17 @@ class VideoStat(Model):
 
     @classmethod
     def create(cls,d):
-        sql = f'''
-                insert into video_stat_02 as cs (video_id,  views, source, viewed_at)
-                values ('{d.video_id}', {d.views}, '{d.source}', '{d.viewed_at}')
-                on conflict (video_id, viewed_at) DO NOTHING;
-        '''
-        job.execute(sql)
-        return job.db.cur.rowcount
+        try:
+            views = int(d.views)
+            sql = f'''
+                    insert into video_stat_02 as cs (video_id,  views, source, viewed_at)
+                    values ('{d.video_id}', {views}, '{d.source}', '{d.viewed_at}')
+                    on conflict (video_id, viewed_at) DO NOTHING;
+            '''
+            job.execute(sql)
+            return job.db.cur.rowcount
+        except:
+            return 0
 
 
 class Video(Model):
