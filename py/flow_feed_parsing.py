@@ -97,9 +97,10 @@ class FlowFeedParsing(Flow):
         self.videos   = videos
 
     def ingest(self):
-        videos_created = 0
-        n_feed_error = 0
-        n_stat = 0
+        videos_created  = 0
+        n_feed_error    = 0
+        n_stat          = 0
+        
         for i,d in self.channels.iterrows():
             if not d.ok:
                 n_feed_error +=1

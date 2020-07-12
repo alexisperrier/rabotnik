@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
     klass = globals()[classname]
-    op = klass(flowtag = True, mode = 'dbquery', counting = True)
+    op = klass(flowtag = True, mode = 'dbquery', counting = False)
     for operation in op.operations:
         if op.ok:
             getattr(op, operation)()
