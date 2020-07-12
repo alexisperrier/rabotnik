@@ -65,7 +65,7 @@ create table pipeline (
     channel_id char(24),
     lang varchar(10),
     lang_conf float default Null,
-    status varchar default 'blank',
+    status varchar default 'incomplete',
     blank BOOLEAN default True,
     complete BOOLEAN default False,
     video_in_rss BOOLEAN default True,
@@ -79,6 +79,8 @@ create table pipeline (
 CREATE UNIQUE INDEX unique_piepline_channel_id ON pipeline(channel_id);
 ALTER TABLE pipeline  ADD COLUMN lang_conf float default Null;
 ALTER TABLE pipeline  ALTER COLUMN lang varchar(10);
+ALTER TABLE pipeline  ALTER COLUMN status set default 'incomplete';
+
 ALTER TABLE pipeline  ADD COLUMN activity_score float default 0;
 ALTER TABLE pipeline  ADD COLUMN channel_complete boolean default False;
 ALTER TABLE pipeline  ADD COLUMN related_videos_counter int default 0;

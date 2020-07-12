@@ -5,6 +5,7 @@ class FlowCare(Flow):
     def __init__(self,**kwargs):
         self.flowname   = 'care'
         kwargs['mode']  = 'local'
+        kwargs['counting']  = True
         super().__init__(**kwargs)
         self.operations = ['care']
         self.care_tasks = ['enforce_border','enforce_lang','set_pubdate','flow_cleanup','helm_cleanup','cold_videos']
