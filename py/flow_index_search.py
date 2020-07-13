@@ -30,7 +30,9 @@ class FlowIndexSearch(Flow):
                 join pipeline pp on pp.video_id = v.video_id
                 left join border b on b.channel_id = v.channel_id
                 left join augment au on au.video_id = v.video_id
+                left join flow f on f.video_id = v.video_id and f.flowname = 'index_search'
                 where b.id is null
+                and f.id is null
                 and au.id is null
                 and (v.summary is not null)
                 and pp.status = 'active'
@@ -51,7 +53,8 @@ class FlowIndexSearch(Flow):
 
     def ingest(self):
         for i,d in self.df.iterrows():
-            IndexSearch.upsert(d)
+            n = IndexSearch.upsert(d)
+            # print(d, f"\nn = {n}")
             self.release(d.video_id)
 
 
