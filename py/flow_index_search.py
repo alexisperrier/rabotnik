@@ -54,7 +54,6 @@ class FlowIndexSearch(Flow):
     def ingest(self):
         for i,d in self.df.iterrows():
             n = IndexSearch.upsert(d)
-            # print(d, f"\nn = {n}")
             self.release(d.video_id)
 
 

@@ -43,6 +43,7 @@ class ChannelStat(Model):
                 where cs.channel_id = '{d.channel_id}'
         '''
         job.execute(sql)
+        return job.db.cur.rowcount
 
 class IndexSearch(Model):
     @classmethod
@@ -101,6 +102,7 @@ class Video(Model):
             where video_id = '{d.video_id}'
         '''
         job.execute(sql)
+        return job.db.cur.rowcount
 
     @classmethod
     def create(cls,d):
@@ -178,6 +180,7 @@ class Channel(object):
             where channel_id = '{d.channel_id}'
         '''
         job.execute(sql)
+        return job.db.cur.rowcount
 
 
 class Timer(Model):
@@ -192,6 +195,7 @@ class Timer(Model):
                 where channel_id = '{d.channel_id}'
         '''
         job.execute(sql)
+        return job.db.cur.rowcount
 
 
     @classmethod
@@ -202,6 +206,7 @@ class Timer(Model):
                 on conflict ({kwargs['idname']}) DO NOTHING;
             '''
         job.execute(sql)
+        return job.db.cur.rowcount
 
 
 
