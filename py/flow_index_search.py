@@ -7,8 +7,8 @@ class FlowIndexSearch(Flow):
 
     def __init__(self,**kwargs):
         self.flowname = 'index_search'
-        super().__init__(**kwargs)
         self.max_items  = 100
+        super().__init__(**kwargs)
         self.idname     = 'video_id'
         self.operations = ['get_items','freeze','compute','ingest']
         self.nlp = spacy.load("fr_core_news_sm")
@@ -33,9 +33,7 @@ class FlowIndexSearch(Flow):
                 where b.id is null
                 and au.id is null
                 and (v.summary is not null)
-                and (v.summary != 'null')
                 and pp.status = 'active'
-                order by v.pubdate desc
          '''
 
     def compute(self):

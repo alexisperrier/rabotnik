@@ -11,7 +11,8 @@ class Flow(object):
         self.mode       = kwargs['mode']
         self.counting   = kwargs['counting']
         self.flowtag    = kwargs['flowtag']
-        self.max_items  = 50
+        if not hasattr(self, 'max_items'):
+            self.max_items  = 50
         self.ok         = True
         self.channel_growth = job.channel_growth
         self.operations = ['get_items','freeze','query_api','decode','prune','ingest']
@@ -62,6 +63,7 @@ class Flow(object):
         if tmp.shape[0]> 0:
             self.item_ids = list(tmp[self.idname].values) + self.item_ids
             self.item_ids = self.item_ids[:min([self.max_items, len(self.item_ids) ]) ]
+
         if not self.counting:
             print(f"{len(self.item_ids)} items")
         self.ok = len(self.item_ids) > 0
