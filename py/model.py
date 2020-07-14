@@ -147,7 +147,7 @@ class Pipeline(Model):
     def create(cls, **kwargs):
         sql = f'''
                 insert into pipeline ({kwargs['idname']}, status)
-                values ('{kwargs['item_id']}','blank')
+                values ('{kwargs['item_id']}','incomplete')
                 on conflict ({kwargs['idname']}) DO NOTHING;
             '''
         job.execute(sql)
