@@ -8,7 +8,7 @@ class FlowCare(Flow):
         kwargs['counting']  = True
         super().__init__(**kwargs)
         self.operations = ['care']
-        self.care_tasks = ['enforce_border','enforce_lang','set_pubdate','flow_cleanup','helm_cleanup','cold_videos']
+        self.care_tasks = ['enforce_border','enforce_lang','set_pubdate','check_pubdate','flow_cleanup','helm_cleanup','cold_videos']
 
     def execution_time(self):   super().execution_time()
     def code_sql(self): pass
@@ -55,6 +55,22 @@ class FlowCare(Flow):
         '''
 
     def sql_set_pubdate(self):
+        '''
+            This query sets the video.pubdate
+        '''
+        return '''
+            update video
+                set pubdate = to_char(published_at ,'YYYY-MM-DD')
+                where video_id in (
+                    select v.video_id
+                    from video v
+                    where v.pubdate is null
+                    and v.published_at is not null
+                    order by v.id asc
+                );
+            '''
+
+    def sql_check_pubdate(self):
         '''
             The video.published_at datetime can changes and sometimes leads to weird video.pubdate
             This query resets the video.pubdate correctly
