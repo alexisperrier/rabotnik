@@ -116,6 +116,18 @@ class Video(Model):
         job.execute(sql)
         return job.db.cur.rowcount
 
+    @classmethod
+    def create_from_id(cls, video_id, origin):
+        sql = f'''
+            insert into video
+                (video_id,origin)
+            values
+                ('{video_id}', '{origin}')
+            on conflict (video_id) DO NOTHING;
+        '''
+        job.execute(sql)
+        return job.db.cur.rowcount
+
 
 
 class Pipeline(Model):
@@ -217,6 +229,19 @@ class RelatedChannels(object):
                  insert into related_channels (channel_id, related_id, retrieved_at)
                  values ('{kwargs['channel_id']}','{kwargs['related_id']}',NOW())
                  on conflict (channel_id, related_id) DO NOTHING;
+             '''
+         job.execute(sql)
+         return job.db.cur.rowcount
+
+
+class RecommendedVideos(object):
+     @classmethod
+     def insert(cls, d):
+         sql = f'''
+                 insert into video_recommendations
+                 (src_video_id, tgt_video_id, harvest_date, tgt_video_harvested_at)
+                values ('{d.src_video_id}','{d.tgt_video_id}', '{d.harvest_date}',NOW())
+                 on conflict (src_video_id, tgt_video_id, harvest_date) DO NOTHING;
              '''
          job.execute(sql)
          return job.db.cur.rowcount

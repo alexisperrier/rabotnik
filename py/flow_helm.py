@@ -6,6 +6,7 @@ from .flow_complete_videos import *
 from .flow_complete_channels import *
 from .flow_feed_parsing import *
 from .flow_index_search import *
+from .flow_scrape import *
 
 class FlowHelm(Flow):
     def __init__(self,**kwargs):
@@ -13,7 +14,7 @@ class FlowHelm(Flow):
         kwargs['mode']  = 'local'
         super().__init__(**kwargs)
         self.operations = ['helm']
-        self.helm_tasks = pd.read_sql("select queryname from query", job.db.conn)['queryname'].values
+        self.helm_tasks = pd.read_sql("select queryname from query order by queryname asc", job.db.conn)['queryname'].values
 
     def execution_time(self):   super().execution_time()
     def code_sql(self): pass

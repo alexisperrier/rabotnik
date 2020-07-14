@@ -338,7 +338,7 @@ create table video_recommendations (
 
 CREATE INDEX src_video_video_recommendations ON video_recommendations(src_video_id);
 CREATE INDEX tgt_video_video_recommendations ON video_recommendations(tgt_video_id);
-
+CREATE UNIQUE INDEX unique_vid_recommendation_src_tgt_date_id ON video_recommendations(src_video_id, tgt_video_id, harvest_date);
 -- ---------------------------------------------------------------------
 --  out of bounds: oobounds 2020 May 18th
 -- ---------------------------------------------------------------------
