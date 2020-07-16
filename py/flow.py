@@ -51,7 +51,6 @@ class Flow(object):
                 job.execute(sql)
 
     def get_items(self):
-        print("=="*5, "get_items")
         '''
             data is a dataframe with potentially multiple columns
             number of samples may not be bounded by self.max_items
@@ -71,7 +70,6 @@ class Flow(object):
             print(f"{len(self.item_ids)} items")
         self.ok = len(self.item_ids) > 0
         self.reason = 'No more items'
-        print(self.item_ids)
 
     def get_sql(self):
         '''
