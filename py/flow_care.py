@@ -23,17 +23,12 @@ class FlowCare(Flow):
             All channels with a country != FR, Null, '' are inserted into border
         '''
         return '''
-            insert into border (channel_id)
-            (select ch.channel_id
-                from channel ch
-                left join border b on b.channel_id = ch.channel_id
-                where ch.country in (
-                    select distinct country
-                    from channel
-                    where (country is not null) and (country !='') and (country != 'FR')
-                ) and b.id is null
-            )
-            on conflict (channel_id) DO NOTHING
+            update pipeline p
+            set status = 'foreign'
+            from channel ch
+            where  p.channel_id = ch.channel_id
+                and p.status = 'active'
+                and (ch.country is not null) and (ch.country !='') and (ch.country != 'FR');
         '''
 
     def sql_enforce_lang(self):
@@ -41,17 +36,14 @@ class FlowCare(Flow):
             All channels with a country  Null, '' and lang !=fr and lang_conf > 02 are inserted into border
         '''
         return '''
-            insert into border (channel_id)
-            (        select ch.channel_id
-                        from channel ch
-                        join pipeline pp on pp.channel_id = ch.channel_id
-                        left join border b on b.channel_id = ch.channel_id
-                        where (ch.country is null or ch.country = '')
-                            and b.id is null
-                            and pp.lang !='fr'
-                            and pp.lang_conf > 0.2
-            )
-            on conflict (channel_id) DO NOTHING
+            update pipeline p
+            set status = 'foreign'
+            from channel ch
+            where  p.channel_id = ch.channel_id
+                and  (ch.country is null or ch.country = '')
+                and p.status = 'active'
+                and p.lang !='fr'
+                and p.lang_conf > 0.2
         '''
 
     def sql_set_pubdate(self):

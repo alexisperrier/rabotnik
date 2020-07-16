@@ -53,10 +53,10 @@ class FlowCompleteVideos(Flow):
              select v.video_id, v.published_at, p.status
                  from video v
                  join pipeline p on p.video_id = v.video_id
-                 left join border b on b.channel_id = v.channel_id
+                 join pipeline pch on pch.channel_id = v.channel_id
                  left join flow as fl on (fl.video_id = v.video_id and fl.flowname = 'complete_videos')
              where p.status = 'incomplete'
-                 and b.id is null
+                and pch.status = 'active'
                  and fl.id is null
          '''
 
@@ -75,12 +75,14 @@ class FlowCompleteVideos(Flow):
             self.df['title']      = self.df.title.apply(lambda d : TextUtils.valid_string_db(d) )
             self.df['summary']    = self.df.summary.apply(lambda d : TextUtils.valid_string_db(d) )
             self.df['wikitopics'] = self.df.topic_categories.apply(lambda d : TextUtils.extract_topic_categories(d))
+            print(self.df)
 
     def ingest(self):
         print(f"== {self.df.shape} to insert")
         for i,d in self.df.iterrows():
             print(d.video_id)
             Video.update(d)
+            VideoScrape.insert(d.video_id)
             Pipeline.update_status(idname = 'video_id',  item_id = d.video_id, status = 'active')
             self.release(d.video_id)
 
@@ -93,6 +95,7 @@ class FlowCompleteVideos(Flow):
         '''
         print("======= postop")
         if (not self.df.empty):
+            channel_count = 0
             channel_ids = self.df.channel_id.unique()
             sql = f'''
                 select channel_id from channel where channel_id in ('{"','".join(channel_ids)}')
@@ -109,9 +112,9 @@ class FlowCompleteVideos(Flow):
             print("--missing_channel_ids:\t",missing_channel_ids)
             for i,d in data.iterrows():
                 print(d.channel_id, d.origin)
-                Channel.create(d.channel_id, d.origin)
+                channel_count += Channel.create(d.channel_id, d.origin)
                 Pipeline.create(idname = 'channel_id',item_id = d.channel_id)
-                Timer.create(idname = 'channel_id',item_id = d.channel_id)
+            print(f"{channel_count} related channels created")
 
 
 

@@ -10,31 +10,22 @@ class FlowChannelTopics(Flow):
 
     def __init__(self,**kwargs):
         self.flowname = 'channel_topics'
+        self.max_items  = 50
         super().__init__(**kwargs)
-        self.max_items  = 20
         self.idname     = 'channel_id'
         self.operations = ['get_items','freeze','compute','ingest']
         self.nlp = spacy.load("fr_core_news_sm")
 
-    def execution_time(self):   super().execution_time()
-    def freeze(self):           super().freeze()
-    def get_items(self):        super().get_items()
-    def get_sql(self):          super().get_sql()
-    def release(self,item_id):  super().release(item_id)
-    def update_query(self):     super().update_query()
-
     def code_sql(self):
         return '''
-            select pp.channel_id from pipeline pp
-            left join flow f on f.channel_id = pp.channel_id
-            left join border b on b.channel_id = pp.channel_id
-            left join topic t on t.channel_id = pp.channel_id
-            where pp.channel_id is not null
-            and b.id is null
+            select ch.channel_id
+            from channel ch
+            left join flow f on f.channel_id = ch.channel_id and f.flowname = 'channel_topics'
+            left join topic tc on tc.channel_id = ch.channel_id
+            where ch.activity_score > 0.4
+            and ((tc.id is null) or (tc.created_at < now() - interval '1 month') )
             and f.id is null
-            and pp.activity_score > 0.4
-            and ((t.id is null) or (t.created_at < now() - interval '1 week') )
-            order by pp.activity_score desc
+            order by ch.activity_score desc
          '''
 
     def compute(self):
@@ -47,7 +38,7 @@ class FlowChannelTopics(Flow):
             print("--"*10,"\n", "channel_id",channel_id)
             sql = f'''
                 select v.video_id, v.title, v.summary, ch.title,
-                (select max(views) from video_stat_02 vs where vs.video_id = v.video_id ) as views,
+                (select max(views) from video_stat vs where vs.video_id = v.video_id ) as views,
                 v.title || ' ' || v.summary || ' ' || coalesce(cap.caption,'') as raw_text
                 from video v
                 join channel ch on ch.channel_id = v.channel_id

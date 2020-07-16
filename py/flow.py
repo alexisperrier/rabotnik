@@ -28,7 +28,9 @@ class Flow(object):
         '''
             Content returned by the API is transformed into a dataframe with proper column names
         '''
+        print("=="*5, "decode")
         data = json.loads(self.results.result.content.decode('utf-8'))
+        print(data)
         if 'items' in data.keys():
             self.df = pd.io.json.json_normalize(data['items']).rename(columns = self.__class__.varnames_api2db)
         else:
@@ -49,6 +51,7 @@ class Flow(object):
                 job.execute(sql)
 
     def get_items(self):
+        print("=="*5, "get_items")
         '''
             data is a dataframe with potentially multiple columns
             number of samples may not be bounded by self.max_items
@@ -68,6 +71,7 @@ class Flow(object):
             print(f"{len(self.item_ids)} items")
         self.ok = len(self.item_ids) > 0
         self.reason = 'No more items'
+        print(self.item_ids)
 
     def get_sql(self):
         '''
@@ -90,10 +94,14 @@ class Flow(object):
             => tag item as pipeline status: unavailable
             => rm from flow
         '''
-        deleted_ids     = [id for id in self.item_ids if id not in self.df[self.idname].values  ]
+        print("=="*5, "prune")
+        if self.df.empty:
+            deleted_ids = self.item_ids
+        else:
+            deleted_ids     = [id for id in self.item_ids if id not in self.df[self.idname].values  ]
         print(f"{len(deleted_ids)} unaccessible items: {deleted_ids}")
 
-        for item_id in deleted_ids[:1]:
+        for item_id in deleted_ids:
             Pipeline.update_status(idname = self.idname, item_id = item_id, status = 'unavailable')
             self.release(item_id)
 
@@ -111,6 +119,17 @@ class Flow(object):
             delete from flow where {self.idname} = '{item_id}' and flowname = '{self.flowname}'
         '''
         job.execute(sql)
+
+    def bulk_release(self):
+        '''
+            rm the item_id from the flow table
+        '''
+        sql = f'''
+            delete from flow where flowname = '{self.flowname}'
+                and {self.idname} in  ('{"','".join(self.item_ids)}')
+        '''
+        job.execute(sql)
+        return job.db.cur.rowcount
 
     def update_query(self):
         '''

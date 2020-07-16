@@ -6,7 +6,7 @@ from .flow_complete_videos import *
 from .flow_complete_channels import *
 from .flow_feed_parsing import *
 from .flow_index_search import *
-from .flow_scrape import *
+from .flow_video_scrape import *
 
 class FlowHelm(Flow):
     def __init__(self,**kwargs):

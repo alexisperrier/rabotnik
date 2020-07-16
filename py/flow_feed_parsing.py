@@ -23,15 +23,8 @@ class FlowFeedParsing(Flow):
         self.flowname = 'feed_parsing'
         super().__init__(**kwargs)
         self.idname = 'channel_id'
-        self.operations = ['get_items','parse','ingest']
+        self.operations = ['get_items','freeze','parse','ingest']
 
-    def execution_time(self):   super().execution_time()
-    def freeze(self):           super().freeze()
-    def get_items(self):        super().get_items()
-    def get_sql(self):          super().get_sql()
-    def query_api(self):        super().query_api()
-    def release(self,item_id):  super().release(item_id)
-    def update_query(self):     super().update_query()
     def tune_sql(self):         pass
 
     def code_sql(self):
@@ -39,18 +32,11 @@ class FlowFeedParsing(Flow):
             select ch.channel_id
             from channel ch
             join pipeline p on p.channel_id  = ch.channel_id
-            join timer t on t.channel_id = ch.channel_id
-            left join border b on b.channel_id = ch.channel_id
-            left join flow as fl on fl.channel_id = ch.channel_id
-            where t.channel_id is not null
-                 and ((t.rss_next_parsing < now() ) or (t.rss_next_parsing is null))
-                 and t.error is null
-                 and ((p.lang = 'fr') or (p.lang is null))
-                 and p.status in ('active','energised','frenetic','sluggish','steady','asleep','cold','dormant','blank')
-                 and p.channel_complete
+            left join flow as fl on fl.channel_id = ch.channel_id  and fl.flowname = 'feed_parsing'
+            where ch.rss_next_parsing < now()
+                 and p.status = 'active'
                  and fl.id is null
-                 and b.id is null
-             order by t.rss_next_parsing asc
+             order by ch.rss_next_parsing asc
          '''
 
     def parse(self):
@@ -74,15 +60,17 @@ class FlowFeedParsing(Flow):
                 entries.reset_index(inplace = True, drop = True)
 
                 videos[channel_id]= entries
-                frequency, channel_status, activity_score = self.__class__.activity_score(entries)
+                frequency, activity, activity_score = self.__class__.activity_score(entries)
+                channel_status = 'active'
 
             elif (result.status == 200) & (len(result.entries) == 0):
                 print("empty feed")
-                frequency, channel_status, activity_score = '30 days', 'empty_feed', 0
+                frequency, activity, activity_score, channel_status = '30 days', None, None, 'feed_empty'
             else:
                 print("feed error", result.status, result.bozo)
-                frequency, channel_status, activity_score = '100 years', 'feed_error', 0
+                frequency, activity, activity_score, channel_status = '1 week', None, None, 'feed_error'
 
+            print(f"[{channel_id}] {frequency}, {activity}, {activity_score}, {channel_status} ")
             channels.append({
                 'channel_id' : channel_id,
                 'status_code': result.status,
@@ -90,6 +78,7 @@ class FlowFeedParsing(Flow):
                 'reason'     : result.bozo,
                 'frequency'  : frequency,
                 'channel_status'  : channel_status,
+                'activity'  : activity,
                 'activity_score'  : activity_score
             })
 
@@ -100,19 +89,19 @@ class FlowFeedParsing(Flow):
         videos_created  = 0
         n_feed_error    = 0
         n_stat          = 0
-        
+
         for i,d in self.channels.iterrows():
             if not d.ok:
                 n_feed_error +=1
                 print("======= channel feed not ok")
                 print(d)
 
-            Timer.update_channel_from_feed(d)
-            Pipeline.update_channel_from_feed(d)
+            Channel.update_from_feed(d)
+            Pipeline.update_status(idname = 'channel_id',  item_id = d.channel_id, status = d.channel_status)
             self.release(d.channel_id)
 
         for channel_id, videos in self.videos.items():
-            print("==\t",channel_id)
+            print("\n==",channel_id)
             # get list of videos already in the db
             sql = f'''
                 select video_id from video where video_id in ('{"','".join(videos.video_id.values)}')
@@ -120,14 +109,14 @@ class FlowFeedParsing(Flow):
             existing_video_ids = pd.read_sql(sql, job.db.conn).video_id.values
 
             for i,d in videos.iterrows():
+
                 n_stat += VideoStat.create(d)
                 if d.video_id not in existing_video_ids:
-                    n_created = Video.create(d)
+                    n_created = Video.create_from_feed(d)
                     if n_created > 0:
                         print("--", d.video_id, d.title[:100])
                     videos_created += n_created
                     Pipeline.create(idname = 'video_id',item_id = d.video_id)
-                    Timer.create(idname = 'video_id',item_id = d.video_id)
 
         print(f"{videos_created} new videos \t {n_feed_error} feed errors \t {n_stat} new video stats")
 
@@ -147,29 +136,29 @@ class FlowFeedParsing(Flow):
 
         # 6 months since last video
         if age_recent > 180:
-            frequency = '90 days'
-            channel_status = 'dormant'
+            frequency   = '90 days'
+            activity    = 'cold'
         elif age_recent > 90:
-            frequency = '15 days'
-            channel_status = 'asleep'
+            frequency   = '15 days'
+            activity    = 'asleep'
         else:
             if activity_score <= 0.1:
-                channel_status  = 'sluggish'
-                frequency       = '3 days'
+                activity  = 'sluggish'
+                frequency = '3 days'
             elif activity_score <= 0.5:
-                channel_status  = 'steady'
-                frequency       = '1 day'
+                activity  = 'steady'
+                frequency = '1 day'
             elif activity_score <= 1:
-                channel_status  = 'active'
-                frequency       = '12 hours'
+                activity  = 'active'
+                frequency = '12 hours'
             elif activity_score <= 5:
-                channel_status  = 'energised'
-                frequency       = '6 hours'
+                activity  = 'energised'
+                frequency = '6 hours'
             else: # more than 5 videos per day
-                channel_status  = 'frenetic'
-                frequency       = '2 hours'
+                activity  = 'frenetic'
+                frequency = '2 hours'
 
-        return frequency, channel_status, activity_score
+        return frequency, activity, activity_score
 
 
 

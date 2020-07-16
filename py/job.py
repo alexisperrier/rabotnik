@@ -23,6 +23,11 @@ class Job(object):
         self.verbose    = bool(distutils.util.strtobool(config['job_verbose']))
         self.db         = DbUtils(config)
         self.apikey     = APIkey(self).apikey
+        self.config     = config
+
+    def reconnect(self):
+        print("=="*5, "reconnecting ")
+        self.db         = DbUtils(self.config)
 
     def execute(self, sql):
         if self.db.conn.closed == 1:

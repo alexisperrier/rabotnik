@@ -19,7 +19,7 @@ from pathlib import Path
 if __name__ == '__main__':
 
 
-    flowname  = 'scrape'
+    flowname  = 'video_scrape'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
     klass = globals()[classname]
 
@@ -33,12 +33,15 @@ if __name__ == '__main__':
 
 
     for operation in op.operations:
+        start_time = datetime.datetime.now()
         print("--",operation)
         if op.ok:
             getattr(op, operation)()
         else:
             print("nok", op.reason,op.status_code)
             break;
+        delta_time = (datetime.datetime.now() - start_time).seconds
+        print("--",operation,f"execution time {delta_time}s")
 
     op.execution_time()
 

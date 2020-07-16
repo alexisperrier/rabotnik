@@ -23,6 +23,7 @@ class FlowCompleteChannels(Flow):
 
     def __init__(self,**kwargs):
         self.flowname = 'complete_channels'
+        # self.max_items = 2
         super().__init__(**kwargs)
         self.endpoint   = 'channels'
         self.idname     = 'channel_id'
@@ -30,31 +31,18 @@ class FlowCompleteChannels(Flow):
         snippet_str     = 'title,description,publishedAt,customUrl,thumbnails/default/url,country'
         self.fields     = f"items(id,snippet({snippet_str}),brandingSettings(channel/showRelatedChannels,channel/featuredChannelsUrls))"
         self.related_channel_ids = []
-        # self.channel_growth = False
-        if self.channel_growth:
+        if job.channel_growth:
             self.operations.append('postop')
 
-
-    def prune(self):            super().prune()
-    def execution_time(self):   super().execution_time()
-    def freeze(self):           super().freeze()
-    def get_items(self):        super().get_items()
-    def get_sql(self):          super().get_sql()
-    def query_api(self):        super().query_api()
-    def release(self,item_id):  super().release(item_id)
-    def update_query(self):     super().update_query()
+    def tune_sql(self): pass
 
     def code_sql(self):
         return '''
             select ch.channel_id
             from channel ch
-                join pipeline p on p.channel_id = ch.channel_id
-                left join border b on b.channel_id = ch.channel_id
-                left join flow as fl on fl.channel_id = ch.channel_id and fl.flowname = 'complete_channels'
-            where p.channel_id is not null
-                and not p.channel_complete
-                and p.status in ('active','energised','frenetic','sluggish','steady','asleep','cold','dormant','blank')
-                and b.id is null
+            join pipeline p on p.channel_id = ch.channel_id
+            left join flow as fl on fl.channel_id = ch.channel_id and fl.flowname = 'complete_channels'
+            where p.status = 'incomplete'
                 and fl.id is null
             order by ch.id asc
          '''
@@ -85,8 +73,6 @@ class FlowCompleteChannels(Flow):
             Channel.update(d)
             Pipeline.update_status(idname = 'channel_id',  item_id = d.channel_id, status = 'active')
             Pipeline.update_lang(idname = 'channel_id',  item_id = d.channel_id, lang = d.lang, lang_conf = d.lang_conf)
-            sql = f"update pipeline set channel_complete = True where channel_id = '{d.channel_id}'"
-            job.execute(sql)
             self.release(d.channel_id)
 
         # related channels
@@ -101,16 +87,12 @@ class FlowCompleteChannels(Flow):
             print("no related channels")
 
 
-    def tune_sql(self):
-        pass
-
     def postop(self):
         print(f"creating {len(self.related_channel_ids)} related channels if not exists")
         channel_count = 0
         for channel_id in self.related_channel_ids:
             channel_count += Channel.create(channel_id, 'related channels')
             Pipeline.create(idname = 'channel_id',item_id = channel_id)
-            Timer.create(idname = 'channel_id',item_id = channel_id)
         print(f"{channel_count} related channels created")
 
 

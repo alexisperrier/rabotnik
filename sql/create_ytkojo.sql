@@ -415,6 +415,22 @@ create table topic  (
 CREATE UNIQUE INDEX topic_channel_id ON topic(channel_id);
 
 
+-- ---------------------------------------------------------------------
+--  video_scrape
+-- ---------------------------------------------------------------------
+drop table if exists video_scrape ;
+create table video_scrape  (
+    id          serial NOT NULL,
+    video_id  char(11),
+    completed_date char(10) default null,
+    scraped_date char(10) default null,
+    scrape_result varchar default null,
+    downloaded_date char(10) default null,
+    recos_count int default null,
+    captions varchar default null,
+    created_at  timestamptz default now()
+);
 
+CREATE UNIQUE INDEX video_scrape_id ON video_scrape(video_id);
 
 -- --

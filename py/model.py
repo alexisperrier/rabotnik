@@ -1,8 +1,82 @@
 from .job import *
-
+import datetime
+import pytz
 class Model(object):
     def __init__(self):
         pass
+
+class VideoStat(Model):
+
+    @classmethod
+    def create(cls,d):
+        try:
+            views = int(d.views)
+            sql = f'''
+                    insert into video_stat as cs (video_id,  views, source, viewed_at)
+                    values ('{d.video_id}', {views}, '{d.source}', '{d.viewed_at}')
+                    on conflict (video_id, viewed_at) DO NOTHING;
+            '''
+            job.execute(sql)
+            return job.db.cur.rowcount
+        except:
+            return 0
+
+class Channel(object):
+    @classmethod
+    def create(cls, channel_id, origin ):
+        sql = f'''
+                insert into channel (channel_id, origin)
+                values ('{channel_id}','{origin}')
+                on conflict (channel_id) DO NOTHING;
+            '''
+        job.execute(sql)
+        return job.db.cur.rowcount
+
+    @classmethod
+    def update(cls,d):
+        sql = f'''
+            update channel set
+                created_at  = '{d.created_at}',
+                title       = $${d.title}$$,
+                description = $${d.description}$$,
+                thumbnail   = '{d.thumbnail}',
+                show_related = '{d.show_related}',
+                custom_url  = '{d.custom_url}',
+                country     = '{d.country}',
+                retrieved_at = now()
+            where channel_id = '{d.channel_id}'
+        '''
+        job.execute(sql)
+        return job.db.cur.rowcount
+
+    @classmethod
+    def update_from_feed(cls,d):
+
+
+        if d.activity is not None:
+            str_activity = f"activity = '{d.activity}',"
+        else:
+            str_activity = f"activity = null,"
+
+        if d.activity is not None:
+            str_activity_score = f"activity_score = {d.activity_score},"
+        else:
+            str_activity_score = f"activity_score = null,"
+
+        sql = f'''
+            update channel set
+                {str_activity}
+                {str_activity_score}
+                rss_next_parsing = NOW() + interval '{d.frequency}',
+                retrieved_at = now()
+            where channel_id = '{d.channel_id}'
+        '''
+        job.execute(sql)
+        return job.db.cur.rowcount
+
+# -----------------------------------------------------------------------
+#  to be reviewed
+# -----------------------------------------------------------------------
 
 class ChannelTopic(Model):
 
@@ -59,21 +133,6 @@ class IndexSearch(Model):
         job.execute(sql)
         return job.db.cur.rowcount
 
-class VideoStat(Model):
-
-    @classmethod
-    def create(cls,d):
-        try:
-            views = int(d.views)
-            sql = f'''
-                    insert into video_stat_02 as cs (video_id,  views, source, viewed_at)
-                    values ('{d.video_id}', {views}, '{d.source}', '{d.viewed_at}')
-                    on conflict (video_id, viewed_at) DO NOTHING;
-            '''
-            job.execute(sql)
-            return job.db.cur.rowcount
-        except:
-            return 0
 
 
 class Video(Model):
@@ -105,7 +164,8 @@ class Video(Model):
         return job.db.cur.rowcount
 
     @classmethod
-    def create(cls,d):
+    def create_from_feed(cls,d):
+        # ok
         sql = f'''
             insert into video
                 (video_id,channel_id,title,summary,origin,published_at)
@@ -128,20 +188,26 @@ class Video(Model):
         job.execute(sql)
         return job.db.cur.rowcount
 
-
-
-class Pipeline(Model):
     @classmethod
-    def update_channel_from_feed(cls, d):
-        sql = f'''
-            update pipeline set
-                status = '{d.channel_status}',
-                rss_frequency = '{d.frequency}',
-                activity_score = {d.activity_score}
-            where channel_id = '{d.channel_id}'
-        '''
+    def bulk_create(cls, video_ids, origin):
+
+        for video_id in video_ids:
+            values.append(f"('{video_id}', '{origin}')")
+
+        sql = f''' insert into video (video_id,origin) values {','.join(values)} '''
         job.execute(sql)
         return job.db.cur.rowcount
+
+class Pipeline(Model):
+    # @classmethod
+    # def update_channel_from_feed(cls, d):
+    #     sql = f'''
+    #         update pipeline set
+    #             status = '{d.channel_status}'
+    #         where channel_id = '{d.channel_id}'
+    #     '''
+    #     job.execute(sql)
+    #     return job.db.cur.rowcount
 
     @classmethod
     def update_status(cls, **kwargs):
@@ -162,35 +228,6 @@ class Pipeline(Model):
                 values ('{kwargs['item_id']}','incomplete')
                 on conflict ({kwargs['idname']}) DO NOTHING;
             '''
-        job.execute(sql)
-        return job.db.cur.rowcount
-
-
-class Channel(object):
-    @classmethod
-    def create(cls, channel_id, origin ):
-        sql = f'''
-                insert into channel (channel_id, origin)
-                values ('{channel_id}','{origin}')
-                on conflict (channel_id) DO NOTHING;
-            '''
-        job.execute(sql)
-        return job.db.cur.rowcount
-
-    @classmethod
-    def update(cls,d):
-        sql = f'''
-            update channel set
-                created_at  = '{d.created_at}',
-                title       = $${d.title}$$,
-                description = $${d.description}$$,
-                thumbnail   = '{d.thumbnail}',
-                show_related = '{d.show_related}',
-                custom_url  = '{d.custom_url}',
-                country     = '{d.country}',
-                retrieved_at = now()
-            where channel_id = '{d.channel_id}'
-        '''
         job.execute(sql)
         return job.db.cur.rowcount
 
@@ -245,6 +282,21 @@ class RecommendedVideos(object):
              '''
          job.execute(sql)
          return job.db.cur.rowcount
+
+
+
+class VideoScrape(Model):
+
+    @classmethod
+    def insert(cls,video_id):
+        completed_date = datetime.datetime.now(pytz.timezone('Europe/Amsterdam')).strftime("%Y-%m-%d")
+        sql = f'''
+                insert into video_scrape (video_id, completed_date, created_at)
+                values ('{video_id}', '{completed_date}', now())
+                on conflict (video_id) DO NOTHING;
+        '''
+        job.execute(sql)
+        return job.db.cur.rowcount
 
 
 
