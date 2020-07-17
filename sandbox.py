@@ -19,7 +19,7 @@ from pathlib import Path
 if __name__ == '__main__':
 
     ld = LangDetector()
-    if False:
+    if True:
 
         sql = '''
             select ch.channel_id,
@@ -60,13 +60,14 @@ if __name__ == '__main__':
             from channel ch
             join pipeline p on p.channel_id = ch.channel_id
             where (ch.country is null or ch.country = '')
-            and p.lang_conf is null
+            and (p.lang_conf is null or p.lang = '--' or p.lang_conf <= 0.2)
             and p.status = 'active'
             order by ch.activity_score desc
-            limit 1000
+            limit 5000
         '''
 
         df = pd.read_sql(sql, job.db.conn)
+
 
         for i,d in df.iterrows():
             sql = f'''
@@ -74,27 +75,35 @@ if __name__ == '__main__':
                 order by id desc limit 10
             '''
             tt = pd.read_sql(sql, job.db.conn)
-            text = ' '.join( tt.text.values)
-            df.loc[i, 'video_text'] = text
+            if not tt.empty:
+                df.loc[i, 'video_text'] = ' '.join( tt.text.values)
+            else:
+                # print(f"{d.channel_id} no vids no text")
+                df.loc[i, 'video_text'] = ''
+
         print("-- done loading video text")
-        df['lang_predicted'] = df.apply(lambda d : ld.predict(  ' '.join([d.video_text, d.description,d.title]).replace("\n",' ')) , axis = 1)
+        df.loc[df['video_text'].isna(), 'video_text'] = ''
+        df.loc[df['description'].isna(), 'description'] = ''
+        df.loc[df['title'].isna(), 'title'] = ''
+
+
+        df['lang_predicted'] = df.apply(lambda d : ld.predict(  ' '.join([d.video_text.lower(), d.description.lower(),d.title.lower()]).replace("\n",' ')) , axis = 1)
         df['lang_conf']      = df.lang_predicted.apply(lambda d : d['conf'])
         df['lang']           = df.lang_predicted.apply(lambda d : d['lang'])
         print("-- done predicting lang")
-        wk = df[df.lang_conf <= 0.6].reset_index(drop = True).copy()
 
-        st = df[df.lang_conf > 0.6].reset_index(drop = True).copy()
-        k = 0
-        for i, d in st.iterrows():
-            sql = f'''
-                update pipeline
-                set lang = '{d.lang}',
-                lang_conf = {d.lang_conf}
-                where channel_id = '{d.channel_id}'
-            '''
-            job.execute(sql)
-            print(f" {k}/{st.shape[0]} [{d.channel_id}] {job.db.cur.rowcount} \t {d.lang} {np.round(d.lang_conf,2)} {d.title}")
-            k +=1
+        if True:
+            k = 0
+            for i, d in df.iterrows():
+                sql = f'''
+                    update pipeline
+                    set lang = '{d.lang}',
+                    lang_conf = {d.lang_conf}
+                    where channel_id = '{d.channel_id}'
+                '''
+                job.execute(sql)
+                print(f" {k}/{df.shape[0]} [{d.channel_id}] {job.db.cur.rowcount} \t {d.lang} {np.round(d.lang_conf,2)} {d.title}")
+                k +=1
 
 
     # flowname  = 'video_scrape'

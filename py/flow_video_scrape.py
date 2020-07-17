@@ -27,11 +27,11 @@ class FlowVideoScrape(Flow):
         self.flowname                   = 'video_scrape'
         self.min_activity_score         = str(0.2)
         self.today                      = datetime.datetime.now(pytz.timezone('Europe/Amsterdam')).strftime("%Y-%m-%d")
-        self.max_items                  = 3
+        self.max_items                  = 50
         super().__init__(**kwargs)
         self.idname                     = 'video_id'
-        self.extra_sleep_time           = 2
-        self.min_sleep_time             = 1
+        self.extra_sleep_time           = 4
+        self.min_sleep_time             = 2
         self.operations                 = ['get_items','freeze','request_pages','parse','ingest','postop']
 
     def code_sql(self):
@@ -69,8 +69,9 @@ class FlowVideoScrape(Flow):
                 invalid_count +=1
 
             data.append({'video_id': video_id, 'valid': FlowVideoScrape.validate_page(page_html), 'page_html': page_html})
-            with open(f"./tmp/{video_id}.html", 'w') as f:
-                f.write(page_html)
+            if False:
+                with open(f"./tmp/{video_id}.html", 'w') as f:
+                    f.write(page_html)
 
             self.data = pd.DataFrame(data)
 
@@ -116,18 +117,18 @@ class FlowVideoScrape(Flow):
                 where video_id = '{d.src_video_id}'
             '''
             job.execute(sql)
+            if (len(d.tgt_video_ids) > 0):
+                values = []
+                for tgt_video_id in d.tgt_video_ids:
+                    values.append(f"('{d.src_video_id}', '{tgt_video_id}', '{self.today}', '{d.tgt_video_harvested_at}' )")
 
-            values = []
-            for tgt_video_id in d.tgt_video_ids:
-                values.append(f"('{d.src_video_id}', '{tgt_video_id}', '{self.today}', '{d.tgt_video_harvested_at}' )")
-
-            sql = f''' insert into video_recommendations
-                (src_video_id, tgt_video_id, harvest_date, tgt_video_harvested_at)
-                values {','.join(values)}
-                on conflict (src_video_id,tgt_video_id,harvest_date) DO NOTHING;
-            '''
-            job.execute(sql)
-            ni  = job.db.cur.rowcount
+                sql = f''' insert into video_recommendations
+                    (src_video_id, tgt_video_id, harvest_date, tgt_video_harvested_at)
+                    values {','.join(values)}
+                    on conflict (src_video_id,tgt_video_id,harvest_date) DO NOTHING;
+                '''
+                job.execute(sql)
+                ni  = job.db.cur.rowcount
 
     def postop(self):
         if self.df.empty:
