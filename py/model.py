@@ -299,5 +299,4 @@ class VideoScrape(Model):
         return job.db.cur.rowcount
 
 
-
 # -------

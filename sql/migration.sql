@@ -71,9 +71,12 @@ alter table pipeline  drop column channel_complete;
 
 -- video and augment
 alter table video add column has_tsv boolean default False;
-CREATE INDEX video_search_indexed ON video(indexed);
+CREATE INDEX video_has_tsv ON video(has_tsv);
 
 
+update video set has_tsv = True
+where video_id in ( select video_id from augment order by id asc limit 200000 offset 200000 );
+alter table video  drop column has_tsv;
 
 --
 drop timer

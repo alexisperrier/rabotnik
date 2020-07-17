@@ -32,7 +32,6 @@ class FlowChannelTopics(Flow):
 
         results = []
         stopwords_rgx = TextUtils.stopwords_rgx()
-        print(self.item_ids)
         for channel_id in self.item_ids:
             topics = None
             print("--"*10,"\n", "channel_id",channel_id)
@@ -51,7 +50,6 @@ class FlowChannelTopics(Flow):
             '''
 
             df = pd.read_sql(sql, job.db.conn).sort_values(by = 'views', ascending = False).reset_index(drop = True)
-            print("----",df.shape)
 
             if ~df.empty and (df.shape[0] > 5):
                 if df.shape[0] > 50:
@@ -78,7 +76,6 @@ class FlowChannelTopics(Flow):
                     )
                 dtm_tfidf = tfidf_vectorizer.fit_transform(corpus)
                 lda_tfidf = LatentDirichletAllocation(n_components=n_components, random_state=0)
-                print("-- fit LDA")
                 lda_tfidf.fit(dtm_tfidf)
                 tf_feature_names = tfidf_vectorizer.get_feature_names()
                 n_top_words = 15

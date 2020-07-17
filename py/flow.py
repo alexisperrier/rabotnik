@@ -28,9 +28,8 @@ class Flow(object):
         '''
             Content returned by the API is transformed into a dataframe with proper column names
         '''
-        print("=="*5, "decode")
         data = json.loads(self.results.result.content.decode('utf-8'))
-        print(data)
+
         if 'items' in data.keys():
             self.df = pd.io.json.json_normalize(data['items']).rename(columns = self.__class__.varnames_api2db)
         else:
@@ -92,7 +91,6 @@ class Flow(object):
             => tag item as pipeline status: unavailable
             => rm from flow
         '''
-        print("=="*5, "prune")
         if self.df.empty:
             deleted_ids = self.item_ids
         else:

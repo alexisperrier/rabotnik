@@ -75,7 +75,6 @@ class FlowCompleteVideos(Flow):
             self.df['title']      = self.df.title.apply(lambda d : TextUtils.valid_string_db(d) )
             self.df['summary']    = self.df.summary.apply(lambda d : TextUtils.valid_string_db(d) )
             self.df['wikitopics'] = self.df.topic_categories.apply(lambda d : TextUtils.extract_topic_categories(d))
-            print(self.df)
 
     def ingest(self):
         print(f"== {self.df.shape} to insert")
