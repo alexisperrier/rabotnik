@@ -66,24 +66,25 @@ class FlowChannelTopics(Flow):
 
                 corpus = list(set(df.text.values))
                 n_components = np.min( [int(len(corpus) / 3), 10])
-                tfidf_vectorizer = TfidfVectorizer(
-                        max_df          = 0.5,
-                        min_df          = 0,
-                        max_features    = 2000,
-                        strip_accents   = 'ascii',
-                        stop_words      = ["'"],
-                        ngram_range     = (1,1),
-                    )
-                dtm_tfidf = tfidf_vectorizer.fit_transform(corpus)
-                lda_tfidf = LatentDirichletAllocation(n_components=n_components, random_state=0)
-                lda_tfidf.fit(dtm_tfidf)
-                tf_feature_names = tfidf_vectorizer.get_feature_names()
-                n_top_words = 15
-                topics = {}
-                for topic_idx, topic in enumerate(lda_tfidf.components_):
-                    topics[topic_idx] =  " ".join([tf_feature_names[i] for i in topic.argsort()[:-n_top_words - 1:-1]])
-                topics = json.dumps(topics)
-                print(topics)
+                if n_components > 1:
+                    tfidf_vectorizer = TfidfVectorizer(
+                            max_df          = 0.5,
+                            min_df          = 0,
+                            max_features    = 2000,
+                            strip_accents   = 'ascii',
+                            stop_words      = ["'"],
+                            ngram_range     = (1,1),
+                        )
+                    dtm_tfidf = tfidf_vectorizer.fit_transform(corpus)
+                    lda_tfidf = LatentDirichletAllocation(n_components=n_components, random_state=0)
+                    lda_tfidf.fit(dtm_tfidf)
+                    tf_feature_names = tfidf_vectorizer.get_feature_names()
+                    n_top_words = 15
+                    topics = {}
+                    for topic_idx, topic in enumerate(lda_tfidf.components_):
+                        topics[topic_idx] =  " ".join([tf_feature_names[i] for i in topic.argsort()[:-n_top_words - 1:-1]])
+                    topics = json.dumps(topics)
+                    print(topics)
             results.append({'channel_id': channel_id, 'topics': topics})
 
         self.df = pd.DataFrame(results)
