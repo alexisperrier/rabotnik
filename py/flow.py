@@ -11,8 +11,10 @@ class Flow(object):
         self.mode       = kwargs['mode']
         self.counting   = kwargs['counting']
         self.flowtag    = kwargs['flowtag']
+
         if not hasattr(self, 'max_items'):
-            self.max_items  = 50
+            self.max_items  = kwargs['max_items']
+
         self.ok         = True
         self.channel_growth = job.channel_growth
         self.operations = ['get_items','freeze','query_api','decode','prune','ingest']

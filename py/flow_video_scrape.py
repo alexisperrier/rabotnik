@@ -27,7 +27,6 @@ class FlowVideoScrape(Flow):
         self.flowname                   = 'video_scrape'
         self.min_activity_score         = str(0.2)
         self.today                      = datetime.datetime.now(pytz.timezone('Europe/Amsterdam')).strftime("%Y-%m-%d")
-        self.max_items                  = 50
         super().__init__(**kwargs)
         self.idname                     = 'video_id'
         self.extra_sleep_time           = 4
