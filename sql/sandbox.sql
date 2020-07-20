@@ -1,3 +1,12 @@
+select ch.channel_id, p.lang, p.lang_conf, ch.title, ch.description
+from channel ch
+join pipeline p on ch.channel_id = p.channel_id
+where p.lang != '--' and p.lang !='' and p.lang is not null
+and p.lang_conf < 0.2;
+
+
+
+
 select v.video_id
 from video v
 join pipeline pp on pp.video_id = v.video_id
