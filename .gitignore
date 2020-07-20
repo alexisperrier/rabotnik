@@ -10,7 +10,8 @@ log/*.log
 config/config_rabotnik.json
 
 notes/
-
+data/
+data/import/
 files/
 model/
 tmp/

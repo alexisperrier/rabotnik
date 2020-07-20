@@ -26,7 +26,8 @@ class FlowHelm(Flow):
             klassname = 'Flow'+ ''.join(word.title() for word in task.split('_'))
             if klassname in globals().keys():
                 klass = globals()[klassname]
-                tk = klass(flowtag = False, mode = 'dbquery', counting = True)
+                params = {'flowtag' : False, 'mode' : 'dbquery', 'counting' : True, 'max_items': 1}
+                tk = klass(**params)
                 tk.get_items()
                 print(f"- {task}: \t", tk.data.shape[0], f"rows \t {(datetime.datetime.now() - start_time).total_seconds()}s")
                 sql = f'''

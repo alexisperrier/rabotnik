@@ -22,7 +22,6 @@ class FlowVideoScrape(Flow):
         self.ok = valid
         return valid
 
-
     def __init__(self,**kwargs):
         self.flowname                   = 'video_scrape'
         self.min_activity_score         = str(0.2)
