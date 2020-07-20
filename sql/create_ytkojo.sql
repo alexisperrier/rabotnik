@@ -433,4 +433,22 @@ create table video_scrape  (
 
 CREATE UNIQUE INDEX video_scrape_id ON video_scrape(video_id);
 
+-- ---------------------------------------------------------------------
+--  channel_origin
+-- ---------------------------------------------------------------------
+drop table if exists origin ;
+create table origin  (
+    id          serial NOT NULL,
+    channel_id  char(24),
+    origin      varchar default null,
+    filename    varchar default null,
+    created_at  timestamptz default now()
+);
+
+CREATE UNIQUE INDEX origin_channel_id ON origin(origin,channel_id);
+
+
+
+
+
 -- --
