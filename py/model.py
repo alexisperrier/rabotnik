@@ -160,8 +160,16 @@ class Video(Model):
                 retrieved_at = now()
             where video_id = '{d.video_id}'
         '''
-        job.execute(sql)
-        return job.db.cur.rowcount
+        try:
+            job.execute(sql)
+            return job.db.cur.rowcount
+        except:
+            print("=="*20)
+            print("FAILED")
+            print(sql)
+            print("=="*20)
+            job.reconnect()
+            return 0
 
     @classmethod
     def create_from_feed(cls,d):
@@ -199,15 +207,6 @@ class Video(Model):
         return job.db.cur.rowcount
 
 class Pipeline(Model):
-    # @classmethod
-    # def update_channel_from_feed(cls, d):
-    #     sql = f'''
-    #         update pipeline set
-    #             status = '{d.channel_status}'
-    #         where channel_id = '{d.channel_id}'
-    #     '''
-    #     job.execute(sql)
-    #     return job.db.cur.rowcount
 
     @classmethod
     def update_status(cls, **kwargs):
@@ -230,34 +229,6 @@ class Pipeline(Model):
             '''
         job.execute(sql)
         return job.db.cur.rowcount
-
-
-class Timer(Model):
-    @classmethod
-    def update_channel_from_feed(cls, d):
-        error = '' if d.ok else ' '.join([str(d.status_code), str(d.empty), str(d.reason)])
-        sql = f''' update timer set
-                    counter = counter +1,
-                    error = $${error}$$,
-                    rss_last_parsing = NOW() ,
-                    rss_next_parsing = NOW() + interval '{d.frequency}'
-                where channel_id = '{d.channel_id}'
-        '''
-        job.execute(sql)
-        return job.db.cur.rowcount
-
-
-    @classmethod
-    def create(cls, **kwargs):
-        sql = f'''
-                insert into timer ({kwargs['idname']}, rss_next_parsing)
-                values ('{kwargs['item_id']}',NOW())
-                on conflict ({kwargs['idname']}) DO NOTHING;
-            '''
-        job.execute(sql)
-        return job.db.cur.rowcount
-
-
 
 class RelatedChannels(object):
      @classmethod
@@ -300,3 +271,27 @@ class VideoScrape(Model):
 
 
 # -------
+# class Timer(Model):
+#     @classmethod
+#     def update_channel_from_feed(cls, d):
+#         error = '' if d.ok else ' '.join([str(d.status_code), str(d.empty), str(d.reason)])
+#         sql = f''' update timer set
+#                     counter = counter +1,
+#                     error = $${error}$$,
+#                     rss_last_parsing = NOW() ,
+#                     rss_next_parsing = NOW() + interval '{d.frequency}'
+#                 where channel_id = '{d.channel_id}'
+#         '''
+#         job.execute(sql)
+#         return job.db.cur.rowcount
+#
+#
+#     @classmethod
+#     def create(cls, **kwargs):
+#         sql = f'''
+#                 insert into timer ({kwargs['idname']}, rss_next_parsing)
+#                 values ('{kwargs['item_id']}',NOW())
+#                 on conflict ({kwargs['idname']}) DO NOTHING;
+#             '''
+#         job.execute(sql)
+#         return job.db.cur.rowcount

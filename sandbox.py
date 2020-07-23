@@ -18,34 +18,27 @@ from pathlib import Path
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--flowname', help='Job name')
-    parser.add_argument('--max_items', help='Number of items to process', default = 50)
-    arguments = parser.parse_args().__dict__
-
-    flowname  = arguments['flowname']
-    print("\n" + "=="* 5 + f" \t{datetime.datetime.now()}  \t{flowname}")
+    flowname  = 'complete_videos'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
     klass = globals()[classname]
 
-    params = {'flowtag' : True, 'mode' : 'local', 'counting' : True, 'max_items': int(arguments['max_items'])}
-    print(params)
+    params = {'flowtag' : False, 'mode' : 'local', 'counting' : True, 'max_items': 10}
     op = klass(**params)
+    op.get_items()
 
-    raise "stop"
 
-    for operation in op.operations:
-        start_time = datetime.datetime.now()
-        print("--",operation)
-        if op.ok:
-            getattr(op, operation)()
-        else:
-            print("nok", op.reason,op.status_code)
-            break;
-        delta_time = (datetime.datetime.now() - start_time).seconds
-        print("--",operation,f"execution time {delta_time}s")
+    # for operation in op.operations:
+    #     start_time = datetime.datetime.now()
+    #     print("--",operation)
+    #     if op.ok:
+    #         getattr(op, operation)()
+    #     else:
+    #         print("nok", op.reason,op.status_code)
+    #         break;
+    #     delta_time = (datetime.datetime.now() - start_time).seconds
+    #     print("--",operation,f"execution time {delta_time}s")
 
-    op.execution_time()
+    # op.execution_time()
 
 
 

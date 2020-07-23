@@ -18,7 +18,7 @@ class FlowVideoScrape(Flow):
             and ("nous excuser pour cette interruption" not in page_html)
         )
         if not valid:
-            print(f"page backlisted or empty for video {sef.video_id}")
+            print(f"page backlisted or empty for video")
         self.ok = valid
         return valid
 
@@ -28,8 +28,8 @@ class FlowVideoScrape(Flow):
         self.today                      = datetime.datetime.now(pytz.timezone('Europe/Amsterdam')).strftime("%Y-%m-%d")
         super().__init__(**kwargs)
         self.idname                     = 'video_id'
-        self.extra_sleep_time           = 4
-        self.min_sleep_time             = 2
+        self.extra_sleep_time           = 10
+        self.min_sleep_time             = 3
         self.operations                 = ['get_items','freeze','request_pages','parse','ingest','postop']
 
     def code_sql(self):
@@ -67,7 +67,7 @@ class FlowVideoScrape(Flow):
                 invalid_count +=1
 
             data.append({'video_id': video_id, 'valid': FlowVideoScrape.validate_page(page_html), 'page_html': page_html})
-            if False:
+            if True:
                 with open(f"./tmp/{video_id}.html", 'w') as f:
                     f.write(page_html)
 

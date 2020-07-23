@@ -10,39 +10,38 @@ from py import *
 if __name__ == '__main__':
 
 
-    filepath    = './data/import/Emma_Gauthier_20200720_Les_Internettes.csv'
+    filepath    = './data/import/Liste_chaine_SIG_20200722.csv'
     filename    = filepath.split('/')[-1]
-    origin      = 'Internettes'
-    if False:
+    origin      = 'SIG-20200722'
+    if True:
         '''
             Read input file, handle field names and check channel ids validity
         '''
         # read input file
         data = pd.read_csv(filepath)
-        data['channel_id'] = data['Lien de la chaîne'].apply(lambda d : d.split('/')[-1])
 
         # check channel validity (24)
         data['valid'] = data.channel_id.apply(lambda id : len(id) == 24)
         print(f" {data.shape[0]} / {data[data.valid].shape[0]} valid/ total channels ")
 
-        channel_ids = data[data.valid].channel_id.values
+        channel_ids = list(set(data[data.valid].channel_id.values))
 
-    if False:
+    if True:
         '''
         Check how many channels already exist
         '''
         sql = f'''
-            select ch.channel_id, p.status, ch.title, ch.description, ch.activity
+            select ch.channel_id, p.status, ch.title, ch.description, ch.activity, ch.country
             from channel ch
             join pipeline p on p.channel_id = ch.channel_id
             where ch.channel_id in ('{"','".join(channel_ids)}')
         '''
         df = pd.read_sql(sql, job.db.conn)
         existing_channel_ids = df.channel_id.values
-
+        missing_channel_ids = [id for id in channel_ids if id not in existing_channel_ids]
         print(f"{df.shape[0]} channels found  / {data.shape[0]} total")
 
-    if False:
+    if True:
         '''
             add channels to origin table
             create channels that don't exist yet
@@ -60,8 +59,8 @@ if __name__ == '__main__':
             job.execute(sql)
             n_origin += job.db.cur.rowcount
 
-            n_created_channels  += Channel.create(d.channel_id, '{origin}')
-            n_created_pipelines +=Pipeline.create(idname = 'channel_id',item_id = d.channel_id)
+            n_created_channels  += Channel.create(d.channel_id, f"{origin}")
+            n_created_pipelines += Pipeline.create(idname = 'channel_id',item_id = d.channel_id)
 
         print(f"{n_origin} channels added to origin")
         print(f"{n_created_channels} new channels \t {n_created_pipelines} created pipelines")
@@ -98,7 +97,7 @@ if __name__ == '__main__':
         op.get_items()
 
         # queued channel_ids
-        queued_channel_ids  = op.data.channel_ids.values
+        queued_channel_ids  = op.data.channel_id.values
         missing_channel_ids = set(channel_ids).intersection(set(existing_channel_ids))
 
         check =  all(id in missing_channel_ids  for id in queued_channel_ids)

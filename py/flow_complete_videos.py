@@ -94,24 +94,31 @@ class FlowCompleteVideos(Flow):
         '''
         print("======= postop")
         if (not self.df.empty):
+            print("--"*5)
+            print("self.df")
+            print(self.df)
             channel_count = 0
             channel_ids = self.df.channel_id.unique()
             sql = f'''
-                select channel_id from channel where channel_id in ('{"','".join(channel_ids)}')
+                select channel_id, title from channel where channel_id in ('{"','".join(channel_ids)}')
             '''
-            existing_channel_ids = pd.read_sql(sql, job.db.conn).channel_id.values
+            existing_channels = pd.read_sql(sql, job.db.conn)
+            print("--"*5)
+            print("existing_channels")
+            print(existing_channels)
+            existing_channel_ids = existing_channels.channel_id.values
             missing_channel_ids = [id for id in channel_ids if id not in existing_channel_ids]
 
             data = self.df[self.df.channel_id.isin(missing_channel_ids)].copy()
             # find origin from videos
-            sql     = f''' select video_id, origin from video where video_id in ('{"','".join(data.video_id.values)}') '''
-            origins = pd.read_sql(sql, job.db.conn)
-            data    = data.merge(origins, on = 'video_id', how = 'outer')
+            # sql     = f''' select video_id, origin from video where video_id in ('{"','".join(data.video_id.values)}') '''
+            # origins = pd.read_sql(sql, job.db.conn)
+            # data    = data.merge(origins, on = 'video_id', how = 'outer')
 
             print("--missing_channel_ids:\t",missing_channel_ids)
             for i,d in data.iterrows():
-                print(d.channel_id, d.origin)
-                channel_count += Channel.create(d.channel_id, d.origin)
+                print(d.channel_id)
+                channel_count += Channel.create(d.channel_id, 'recommended videos')
                 Pipeline.create(idname = 'channel_id',item_id = d.channel_id)
             print(f"{channel_count} related channels created")
 

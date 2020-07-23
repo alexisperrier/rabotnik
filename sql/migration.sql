@@ -12,6 +12,7 @@ drop table channels cascade;
 drop table related_videos cascade;
 drop table videos cascade;
 drop table page cascade;
+drop table backup_pipeline cascade;
 
 -- rename video_stat_02 into video_stat
 ALTER TABLE video_stat RENAME TO video_stat_01;
