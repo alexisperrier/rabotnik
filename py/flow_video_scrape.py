@@ -67,7 +67,7 @@ class FlowVideoScrape(Flow):
                 invalid_count +=1
 
             data.append({'video_id': video_id, 'valid': FlowVideoScrape.validate_page(page_html), 'page_html': page_html})
-            if False:
+            if True:
                 with open(f"./tmp/{video_id}.html", 'w') as f:
                     f.write(page_html)
 
@@ -83,8 +83,16 @@ class FlowVideoScrape(Flow):
             # extract simpleText
             json_pattern   = list(set(re.findall(r'{"simpleText":"[^\"]+"}', d.page_html)))
             info  = list(set([item[15:] for item in json_pattern]))
+            # capture all channelIds as potential recommendation channels and videos
 
+            try:
+                # channel_id = list(set(re.findall(r'externalChannelId":"[^\"]+"', d.page_html)))[0][20:44]
+                channel_ids = [id[12:36] for id in list(set(re.findall(r'channelId":"[^\"]+"', d.page_html)))]
+            except:
+                channel_ids = []
+            print(f"-- found {len(channel_ids)} channel_ids: {channel_ids}")
             df.append({
+                    'channel_ids': channel_ids,
                     'src_video_id'  : d.video_id,
                     'tgt_video_ids'  : tgt_video_ids,
                     'recos_count'   : len(tgt_video_ids),
@@ -143,14 +151,31 @@ class FlowVideoScrape(Flow):
         '''
         existing_video_ids = pd.read_sql(sql, job.db.conn).video_id.values
         missing_video_ids  = [id for id in tgt_video_ids if id not in existing_video_ids]
-        print("missing_video_ids",missing_video_ids)
+        print(f"-- {len(missing_video_ids)}  missing_videos: ",missing_video_ids)
         if len(missing_video_ids) > 0:
             for video_id in missing_video_ids:
                 n += Video.create_from_id(video_id, "recommended videos")
                 Pipeline.create(idname = 'video_id',item_id = video_id)
 
+        # create channel_id if not exists
+        print("--"*5, "recommended channel creation")
+        channel_count = 0
+        channel_ids = []
+        for i,d in self.df.iterrows():
+            channel_ids += d.channel_ids
 
-        print(f"-- n_recommended videos added {n}")
+        sql = f'''
+            select channel_id, title from channel where channel_id in ('{"','".join(channel_ids)}')
+        '''
+        existing_channel_ids = pd.read_sql(sql, job.db.conn).channel_id.values
+        missing_channel_ids = [id for id in channel_ids if id not in existing_channel_ids]
+
+        print(f"-- {len(missing_channel_ids)} missing channels: ",missing_channel_ids)
+        for channel_id in missing_channel_ids:
+            channel_count += Channel.create(channel_id, 'recommended channels')
+            Pipeline.create(idname = 'channel_id',item_id = channel_id)
+
+        print(f"-- n_recommended channels added {channel_count}")
 
 
 
