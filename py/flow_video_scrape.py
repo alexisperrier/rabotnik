@@ -67,7 +67,7 @@ class FlowVideoScrape(Flow):
                 invalid_count +=1
 
             data.append({'video_id': video_id, 'valid': FlowVideoScrape.validate_page(page_html), 'page_html': page_html})
-            if True:
+            if False:
                 with open(f"./tmp/{video_id}.html", 'w') as f:
                     f.write(page_html)
 
