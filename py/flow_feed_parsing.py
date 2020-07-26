@@ -35,6 +35,7 @@ class FlowFeedParsing(Flow):
             left join flow as fl on fl.channel_id = ch.channel_id  and fl.flowname = 'feed_parsing'
             where ch.rss_next_parsing < now()
                  and p.status = 'active'
+                 and p.lang = 'fr'
                  and fl.id is null
              order by ch.rss_next_parsing asc
          '''
@@ -144,19 +145,19 @@ class FlowFeedParsing(Flow):
         else:
             if activity_score <= 0.1:
                 activity  = 'sluggish'
-                frequency = '3 days'
+                frequency = '7 days'
             elif activity_score <= 0.5:
                 activity  = 'steady'
-                frequency = '1 day'
+                frequency = '3 day'
             elif activity_score <= 1:
                 activity  = 'active'
-                frequency = '12 hours'
+                frequency = '24 hours'
             elif activity_score <= 5:
                 activity  = 'energised'
-                frequency = '6 hours'
+                frequency = '12 hours'
             else: # more than 5 videos per day
                 activity  = 'frenetic'
-                frequency = '2 hours'
+                frequency = '3 hours'
 
         return frequency, activity, activity_score
 

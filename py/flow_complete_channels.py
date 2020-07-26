@@ -44,6 +44,7 @@ class FlowCompleteChannels(Flow):
             left join flow as fl on fl.channel_id = ch.channel_id and fl.flowname = 'complete_channels'
             where p.status = 'incomplete'
                 and fl.id is null
+                and p.lang is not null
             order by ch.id asc
          '''
 

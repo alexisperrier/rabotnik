@@ -18,27 +18,27 @@ from pathlib import Path
 
 if __name__ == '__main__':
 
-    flowname  = 'channel_triage'
+    flowname  = 'feed_parsing'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
     klass = globals()[classname]
 
-    params = {'flowtag' : True, 'mode' : 'local', 'counting' : True, 'max_items': 50}
+    params = {'flowtag' : True, 'mode' : 'local', 'counting' : True, 'max_items': 2}
     op = klass(**params)
-    op.get_items()
-    op.parse()
-    op.ingest()
+    # op.get_items()
+    # op.parse()
+    # op.ingest()
 
 
-    # for operation in op.operations:
-    #     start_time = datetime.datetime.now()
-    #     print("--",operation)
-    #     if op.ok:
-    #         getattr(op, operation)()
-    #     else:
-    #         print("nok", op.reason,op.status_code)
-    #         break;
-    #     delta_time = (datetime.datetime.now() - start_time).seconds
-    #     print("--",operation,f"execution time {delta_time}s")
+    for operation in op.operations:
+        start_time = datetime.datetime.now()
+        print("--",operation)
+        if op.ok:
+            getattr(op, operation)()
+        else:
+            print("nok", op.reason,op.status_code)
+            break;
+        delta_time = (datetime.datetime.now() - start_time).seconds
+        print("--",operation,f"execution time {delta_time}s")
 
     op.execution_time()
 
