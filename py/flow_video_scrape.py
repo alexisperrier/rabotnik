@@ -30,7 +30,10 @@ class FlowVideoScrape(Flow):
         self.idname                     = 'video_id'
         self.extra_sleep_time           = 10
         self.min_sleep_time             = 3
-        self.operations                 = ['get_items','freeze','request_pages','parse','ingest','postop']
+        self.operations                 = ['get_items','freeze','request_pages','parse','ingest']
+        if job.channel_growth:
+            self.operations.append('postop')
+        
 
     def code_sql(self):
         '''
@@ -45,6 +48,7 @@ class FlowVideoScrape(Flow):
             join video_scrape vs on (vs.video_id = v.video_id and vs.scraped_date is null)
             left join flow as fl on (fl.video_id = v.video_id and fl.flowname = 'video_scrape')
             where pp.status = 'active'
+                and v.category_id != 20
                 and ppch.status = 'active'
                 and fl.id is null
          '''
@@ -168,7 +172,7 @@ class FlowVideoScrape(Flow):
             select channel_id, title from channel where channel_id in ('{"','".join(channel_ids)}')
         '''
         existing_channel_ids = pd.read_sql(sql, job.db.conn).channel_id.values
-        missing_channel_ids = [id for id in channel_ids if id not in existing_channel_ids]
+        missing_channel_ids  = [id for id in channel_ids if id not in existing_channel_ids]
 
         print(f"-- {len(missing_channel_ids)} missing channels: ",missing_channel_ids)
         for channel_id in missing_channel_ids:

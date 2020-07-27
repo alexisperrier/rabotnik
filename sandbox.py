@@ -18,15 +18,12 @@ from pathlib import Path
 
 if __name__ == '__main__':
 
-    flowname  = 'feed_parsing'
+    flowname  = 'video_stats'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
     klass = globals()[classname]
 
     params = {'flowtag' : True, 'mode' : 'local', 'counting' : True, 'max_items': 2}
     op = klass(**params)
-    # op.get_items()
-    # op.parse()
-    # op.ingest()
 
 
     for operation in op.operations:
@@ -35,7 +32,7 @@ if __name__ == '__main__':
         if op.ok:
             getattr(op, operation)()
         else:
-            print("nok", op.reason,op.status_code)
+            print("nok", getattr(op, 'reason', ''), getattr(op, 'status_code', ''))
             break;
         delta_time = (datetime.datetime.now() - start_time).seconds
         print("--",operation,f"execution time {delta_time}s")

@@ -29,6 +29,7 @@ class FlowVideoStats(Flow):
              left join flow as fl on fl.video_id = v.video_id and fl.flowname = 'video_stats'
              left join video_stat vs on ( (vs.video_id = v.video_id) and (vs.viewed_at > '{timespan_01}'))
              where v.pubdate in ('{timespan_02}')
+                and v.category_id != 20
                 and fl.id is null
                 and vs.id is null
                 and p.status = 'active'
