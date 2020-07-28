@@ -80,11 +80,26 @@ class FlowCompleteVideos(Flow):
     def ingest(self):
         print(f"== {self.df.shape} to insert")
         for i,d in self.df.iterrows():
-            print(d.video_id)
             Video.update(d)
-            VideoScrape.insert(d.video_id)
-            Pipeline.update_status(idname = 'video_id',  item_id = d.video_id, status = 'active')
-            self.release(d.video_id)
+
+            sql = f'''
+                select status from pipeline where channel_id = '{d.channel_id}'
+            '''
+            job.execute(sql)
+            if job.db.cur.rowcount >0:
+                channel_status = job.db.cur.fetchone()[0]
+            else:
+                channel_status = None
+            print(d.video_id, d.channel_id, channel_status)
+            if channel_status in ['active','incomplete']:
+                VideoScrape.insert(d.video_id)
+                Pipeline.update_status(idname = 'video_id',  item_id = d.video_id, status = 'active')
+            elif channel_status == 'foreign':
+                Pipeline.update_status(idname = 'video_id',  item_id = d.video_id, status = 'foreign')
+            elif channel_status in ['unavailable', 'feed_error','feed_empty']:
+                Pipeline.update_status(idname = 'video_id',  item_id = d.video_id, status = 'inactive_channel')
+            else:
+                Pipeline.update_status(idname = 'video_id',  item_id = d.video_id, status = 'unknown_channel')
 
     def tune_sql(self):
         pass
