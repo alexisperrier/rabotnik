@@ -43,6 +43,7 @@ class Flow(object):
 
     def freeze(self):
         if self.flowtag:
+            print("-- start freeze")
             for item_id in self.item_ids:
                 sql = f'''
                     insert into flow ({self.idname}, flowname,start_at)
@@ -50,6 +51,7 @@ class Flow(object):
                     on conflict ({self.idname}, flowname) DO NOTHING;
                 '''
                 job.execute(sql)
+            print("-- freeze done")
 
     def get_items(self):
         '''
