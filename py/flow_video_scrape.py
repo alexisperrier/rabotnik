@@ -33,7 +33,7 @@ class FlowVideoScrape(Flow):
         self.operations                 = ['get_items','freeze','request_pages','parse','ingest']
         if job.channel_growth:
             self.operations.append('postop')
-        
+
 
     def code_sql(self):
         '''
@@ -71,6 +71,7 @@ class FlowVideoScrape(Flow):
                 invalid_count +=1
 
             data.append({'video_id': video_id, 'valid': FlowVideoScrape.validate_page(page_html), 'page_html': page_html})
+
             if False:
                 with open(f"./tmp/{video_id}.html", 'w') as f:
                     f.write(page_html)
@@ -83,7 +84,6 @@ class FlowVideoScrape(Flow):
         for i,d in self.data[self.data.valid].iterrows():
             json_pattern   = list(set(re.findall(r'{"videoId":"[^\"]+"', d.page_html)))
             tgt_video_ids  = list(set([item[12:23] for item in json_pattern if item[12:23] != d.video_id]))
-            print( f"[{d.video_id}] tgt_video_ids: {len(tgt_video_ids)} ")
             # extract simpleText
             json_pattern   = list(set(re.findall(r'{"simpleText":"[^\"]+"}', d.page_html)))
             info  = list(set([item[15:] for item in json_pattern]))
@@ -94,7 +94,7 @@ class FlowVideoScrape(Flow):
                 channel_ids = [id[12:36] for id in list(set(re.findall(r'channelId":"[^\"]+"', d.page_html)))]
             except:
                 channel_ids = []
-            print(f"-- found {len(channel_ids)} channel_ids: {channel_ids}")
+            print( f"[{d.video_id}] \t tgt_video_ids: {len(tgt_video_ids)} \t {len(channel_ids)} new channels")
             df.append({
                     'channel_ids': channel_ids,
                     'src_video_id'  : d.video_id,
@@ -109,7 +109,7 @@ class FlowVideoScrape(Flow):
     def ingest(self):
         # invalid scrapes
         for i,d in self.data[~self.data.valid].iterrows():
-            sql = '''
+            sql = f'''
                 update video_scrape
                 set scraped_date = '{self.today}'
                 scrape_result = 'failed'

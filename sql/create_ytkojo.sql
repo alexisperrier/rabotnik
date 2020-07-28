@@ -450,5 +450,24 @@ CREATE UNIQUE INDEX origin_channel_id ON origin(origin,channel_id);
 
 
 
+-- ---------------------------------------------------------------------
+--  User
+-- ---------------------------------------------------------------------
+drop table if exists users ;
+create table users  (
+    id          serial NOT NULL,
+    email     varchar default '',
+    encrypted_password     varchar default '',
+    reset_password_token    varchar default null,
+    reset_password_sent_at  timestamptz,
+    remember_created_at  timestamptz
+);
+
+CREATE UNIQUE INDEX email_users ON users(email);
+CREATE UNIQUE INDEX reset_password_token_users ON users(reset_password_token);
+
+
+
+
 
 -- --

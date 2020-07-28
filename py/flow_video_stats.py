@@ -22,13 +22,19 @@ class FlowVideoStats(Flow):
         self.sql = self.sql.replace('{timespan_01}', timespan_01).replace( '{timespan_02}', timespan_02)
 
     def code_sql(self):
+        '''
+        No gaming videos
+        Channel must be active (not foreign)
+        '''
         return '''
              select v.video_id
              from video v
              join pipeline p on p.video_id = v.video_id
+             join pipeline pch on p.channel_id = v.channel_id
              left join flow as fl on fl.video_id = v.video_id and fl.flowname = 'video_stats'
              left join video_stat vs on ( (vs.video_id = v.video_id) and (vs.viewed_at > '{timespan_01}'))
              where v.pubdate in ('{timespan_02}')
+                and pch.status = 'active'
                 and v.category_id != 20
                 and fl.id is null
                 and vs.id is null
