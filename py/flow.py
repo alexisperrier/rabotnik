@@ -89,6 +89,11 @@ class Flow(object):
         if not self.counting:
             self.sql = self.sql + f" limit {self.max_items}"
 
+        # offset factor is set according to the hosting instance
+        if job.config['offset_factor'] > 0:
+            self.sql = self.sql + f" offset {self.max_items * job.config['offset_factor']}"
+
+
     def prune(self):
         '''
             not all item_ids are returned by the API, videos can be deleted, channels can be banned
