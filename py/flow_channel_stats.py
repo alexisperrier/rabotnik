@@ -37,4 +37,4 @@ class FlowChannelStats(Flow):
     def ingest(self):
         for i,d in self.df.iterrows():
             ChannelStat.upsert(d)
-            self.release(d.channel_id)
+            # self.release(d.channel_id)

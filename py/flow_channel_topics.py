@@ -92,7 +92,7 @@ class FlowChannelTopics(Flow):
     def ingest(self):
         for i,d in self.df.iterrows():
             ChannelTopic.upsert(d)
-            self.release(d.channel_id)
+            # self.release(d.channel_id)
 
 
 # -----------------

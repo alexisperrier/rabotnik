@@ -74,7 +74,7 @@ class FlowCompleteChannels(Flow):
             Channel.update(d)
             Pipeline.update_status(idname = 'channel_id',  item_id = d.channel_id, status = 'active')
             Pipeline.update_lang(idname = 'channel_id',  item_id = d.channel_id, lang = d.lang, lang_conf = d.lang_conf)
-            self.release(d.channel_id)
+            # self.release(d.channel_id)
 
         # related channels
         if 'related_channel_ids' in self.df.columns:

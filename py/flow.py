@@ -108,7 +108,7 @@ class Flow(object):
 
         for item_id in deleted_ids:
             Pipeline.update_status(idname = self.idname, item_id = item_id, status = 'unavailable')
-            self.release(item_id)
+            # self.release(item_id)
 
     def query_api(self):
         self.results     = APIrequest(self,job).get()

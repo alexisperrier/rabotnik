@@ -99,7 +99,7 @@ class FlowFeedParsing(Flow):
 
             Channel.update_from_feed(d)
             Pipeline.update_status(idname = 'channel_id',  item_id = d.channel_id, status = d.channel_status)
-            self.release(d.channel_id)
+            # self.release(d.channel_id)
 
         for channel_id, videos in self.videos.items():
             print("\n==",channel_id)

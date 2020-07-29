@@ -52,7 +52,7 @@ class FlowVideoScrape(Flow):
                 and ppch.status = 'active'
                 and fl.id is null
                 and v.published_at > now() - interval '1 week'
-                order by v.published_at desc 
+                order by v.published_at desc
          '''
 
     def tune_sql(self): pass
@@ -120,7 +120,7 @@ class FlowVideoScrape(Flow):
             job.execute(sql)
 
         for i,d in self.df.iterrows():
-            self.release(d.src_video_id)
+            # self.release(d.src_video_id)
             sql = f'''
                 update video_scrape
                 set scraped_date = '{self.today}' ,
