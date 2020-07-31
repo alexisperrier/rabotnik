@@ -28,8 +28,8 @@ class FlowVideoScrape(Flow):
         self.today                      = datetime.datetime.now(pytz.timezone('Europe/Amsterdam')).strftime("%Y-%m-%d")
         super().__init__(**kwargs)
         self.idname                     = 'video_id'
-        self.extra_sleep_time           = 10
-        self.min_sleep_time             = 3
+        self.extra_sleep_time           = 4
+        self.min_sleep_time             = 2
         self.operations                 = ['get_items','freeze','request_pages','parse','ingest']
         if job.channel_growth:
             self.operations.append('postop')
