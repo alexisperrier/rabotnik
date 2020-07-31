@@ -49,16 +49,22 @@ class FlowCompleteVideos(Flow):
     def update_query(self):     super().update_query()
 
     def code_sql(self):
+        '''
+        The condition on v.published_at excludes v.published_at = null
+        videos from scrape: recommended videos are not completed
+        but channels from recommended videos and related channels are.
+        '''
         return '''
-            select v.video_id, v.published_at, p.status, pch.status, pch.id
+            select v.video_id, v.published_at, v.origin, p.status, pch.status, pch.id
             from video v
                 join pipeline p on p.video_id = v.video_id
                 left join pipeline pch on pch.channel_id = v.channel_id
                 left join flow as fl on (fl.video_id = v.video_id and fl.flowname = 'complete_videos')
-            where  v.video_id in (select video_id from pipeline where status = 'incomplete' and video_id is not null order by id desc limit 5000)
-            and p.status = 'incomplete'
+            where p.status = 'incomplete'
             and (pch.status = 'active' or pch.id is null)
             and fl.id is null
+            and v.published_at > now() - interval '1 month'
+            order by v.published_at desc
          '''
 
     def decode(self):
