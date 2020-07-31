@@ -21,8 +21,9 @@ if __name__ == '__main__':
     flowname  = 'complete_videos'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
     klass = globals()[classname]
+    job.offset_factor = 0
 
-    params = {'flowtag' : False, 'mode' : 'local', 'counting' : False, 'max_items': 2}
+    params = {'flowtag' : False, 'mode' : 'local', 'counting' : True, 'max_items': 50}
     op = klass(**params)
     op.get_items()
 
