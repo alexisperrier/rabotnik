@@ -1,0 +1,87 @@
+[
+  {
+    "mode": "NULLABLE",
+    "name": "video_id",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "channel_id",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "title",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "summary",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "thumbnail",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "category",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "duration",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "seconds",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "origin",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "default_audio_language",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "default_language",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "wikitopics",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "published_at",
+    "type": "TIMESTAMP"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "retrieved_at",
+    "type": "TIMESTAMP"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "status",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "lang",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "lang_conf",
+    "type": "FLOAT"
+  }
+]
