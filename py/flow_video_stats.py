@@ -18,7 +18,8 @@ class FlowVideoStats(Flow):
 
     def tune_sql(self):
         timespan_01 = (datetime.datetime.now() - datetime.timedelta(days = 1)).strftime('%Y-%m-%d')
-        timespan_02 = "','".join( [(datetime.datetime.now() - datetime.timedelta(days = d)).strftime('%Y-%m-%d') for d in [1,2,3,4,5,6,7,14,21,28,60]])
+        # timespan_02 = "','".join( [(datetime.datetime.now() - datetime.timedelta(days = d)).strftime('%Y-%m-%d') for d in [1,2,3,4,5,6,7,14,21,28,60]])
+        timespan_02 = "','".join( [(datetime.datetime.now() - datetime.timedelta(days = d)).strftime('%Y-%m-%d') for d in [15,30,60]])
         self.sql = self.sql.replace('{timespan_01}', timespan_01).replace( '{timespan_02}', timespan_02)
 
     def code_sql(self):
@@ -30,11 +31,13 @@ class FlowVideoStats(Flow):
              select v.video_id
              from video v
              join pipeline p on p.video_id = v.video_id
-             join pipeline pch on p.channel_id = v.channel_id
+             join pipeline pch on pch.channel_id = v.channel_id
+             join channel ch on ch.channel_id = v.channel_id
              left join flow as fl on fl.video_id = v.video_id and fl.flowname = 'video_stats'
              left join video_stat vs on ( (vs.video_id = v.video_id) and (vs.viewed_at > '{timespan_01}'))
              where v.pubdate in ('{timespan_02}')
                 and pch.status = 'active'
+                and ch.activity in ('energised','frenetic')
                 and v.category_id != 20
                 and fl.id is null
                 and vs.id is null

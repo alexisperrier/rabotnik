@@ -1,6 +1,10 @@
 from .job import *
 import datetime
 import pytz
+import urllib
+from xml.etree import ElementTree
+import html
+
 class Model(object):
     def __init__(self):
         pass
@@ -268,6 +272,63 @@ class VideoScrape(Model):
         '''
         job.execute(sql)
         return job.db.cur.rowcount
+
+
+
+class Caption(object):
+    @classmethod
+    def get_lang(cls, url):
+        params = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
+        if ('lang' in params.keys()):
+            return params['lang'][0]
+        else:
+            return ''
+
+    @classmethod
+    def get_asr(cls, url):
+        params = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
+        if ('kind' in params.keys()):
+            if (params['kind'][0] == 'asr'):
+                return 'b_generated'
+            else:
+                return 'c_unknown'
+        else:
+            return 'a_manual'
+
+    @classmethod
+    def get_expire(cls, url):
+        return urllib.parse.parse_qs(urllib.parse.urlparse(url).query)['expire'][0]
+
+    @classmethod
+    def get_captions(cls, caption_urls):
+        HTML_TAG_REGEX = re.compile(r'<[^>]*>', re.IGNORECASE)
+
+        captions = []
+        for i,u in caption_urls.iterrows():
+            http_client = requests.Session()
+            result = requests.Session().get(u.url)
+            if (result.status_code == 200) and (len(result.text) > 0):
+
+                caption_text = [re.sub(HTML_TAG_REGEX, '', html.unescape(xml_element.text)).replace("\n",' ').replace("\'","'")
+                            for xml_element in ElementTree.fromstring(result.text)
+                            if xml_element.text is not None
+                        ]
+                # caption_text = ' '.join(caption_text)
+            else:
+                caption_text = None
+
+            captions.append({
+                'code': result.status_code,
+                'len_': len(result.text),
+                'expire': datetime.datetime.utcfromtimestamp( int(u.expire)  ).strftime('%Y-%m-%d %H:%M:%S'),
+                'text': caption_text,
+                'caption_type': u.caption_type,
+                'lang': u.lang,
+                'caption_url': u.url
+            })
+
+        captions = pd.DataFrame(captions)
+        return captions
 
 
 # -------

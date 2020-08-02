@@ -18,14 +18,22 @@ from pathlib import Path
 
 if __name__ == '__main__':
 
-    flowname  = 'complete_videos'
+    flowname  = 'video_stats'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
     klass = globals()[classname]
     job.offset_factor = 0
 
-    params = {'flowtag' : False, 'mode' : 'local', 'counting' : True, 'max_items': 50}
+    params = {'flowtag' : False, 'mode' : 'local', 'counting' : True, 'max_items': 2}
     op = klass(**params)
     op.get_items()
+    # op.request_pages()
+    #
+    # op.parse_captions()
+    # op.ingest_captions()
+    #
+    # op.parse()
+    # op.ingest()
+    # op.postop()
 
 
     # for operation in op.operations:
@@ -40,6 +48,9 @@ if __name__ == '__main__':
     #     print("--",operation,f"execution time {delta_time}s")
 
     op.execution_time()
+
+# ------------
+
 
 
 

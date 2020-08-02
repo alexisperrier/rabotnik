@@ -467,6 +467,30 @@ CREATE UNIQUE INDEX email_users ON users(email);
 CREATE UNIQUE INDEX reset_password_token_users ON users(reset_password_token);
 
 
+-- ---------------------------------------------------------------------
+--  List
+-- ---------------------------------------------------------------------
+drop table if exists list ;
+create table list  (
+    id          serial NOT NULL,
+    user_id     varchar,
+    title       varchar,
+    description varchar,
+    created_at  timestamptz,
+    modified_at  timestamptz
+);
+
+drop table if exists video_list ;
+create table video_list  (
+    id          serial NOT NULL,
+    list_id     varchar,
+    video_id     varchar,
+    created_at  timestamptz,
+    modified_at  timestamptz
+);
+
+
+
 
 
 

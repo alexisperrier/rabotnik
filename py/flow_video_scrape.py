@@ -5,6 +5,9 @@ from .flow import *
 from .text import *
 import datetime, time, pytz
 import feedparser
+import urllib
+from xml.etree import ElementTree
+import html
 
 class FlowVideoScrape(Flow):
 
@@ -51,7 +54,7 @@ class FlowVideoScrape(Flow):
                 and v.category_id != 20
                 and ppch.status = 'active'
                 and fl.id is null
-                and v.published_at > now() - interval '1 week'
+                and v.published_at > now() - interval '1 month'
                 order by v.published_at desc
          '''
 
@@ -107,6 +110,59 @@ class FlowVideoScrape(Flow):
                 })
 
         self.df = pd.DataFrame(df)
+
+    # def parse_captions(self):
+    #     HTML_TAG_REGEX = re.compile(r'<[^>]*>', re.IGNORECASE)
+    #
+    #     start_ = 'https://www.youtube.com/api/timedtext'
+    #     end_ = '",'
+    #     # get caption urls
+    #     self.caption_urls = pd.DataFrame()
+    #     for i,d in self.data[self.data.valid].iterrows():
+    #         m = re.findall('{}(.+?){}'.format(start_, end_), d.page_html)
+    #         if len(m) >0:
+    #             urls = []
+    #             for url in m :
+    #                 urls.append({
+    #                         'video_id': d.video_id,
+    #                         'url': start_+url,
+    #                         'expire': Caption.get_expire(start_+url),
+    #                         'caption_type': Caption.get_asr(start_+url),
+    #                         'lang': Caption.get_lang(start_+url)
+    #                         })
+    #
+    #             urls = pd.DataFrame(urls).drop_duplicates()
+    #             urls = urls[urls.expire == urls.expire.max() ].copy()
+    #             self.caption_urls = urls.copy()
+    #     print(f" found {self.caption_urls.shape} caption urls \n{self.caption_urls.head()}")
+    #     # get captions from caption urls
+    #
+    #     self.captions = pd.DataFrame()
+    #     captions = []
+    #     for i,u in self.caption_urls.iterrows():
+    #         http_client = requests.Session()
+    #         result = requests.Session().get(u.url)
+    #         if (result.status_code == 200) and (len(result.text) > 0):
+    #
+    #             caption_text = [re.sub(HTML_TAG_REGEX, '', html.unescape(xml_element.text)).replace("\n",' ').replace("\'","'")
+    #                         for xml_element in ElementTree.fromstring(result.text)
+    #                         if xml_element.text is not None
+    #                     ]
+    #
+    #             captions.append({
+    #                 'video_id': u.video_id,
+    #                 'code': result.status_code,
+    #                 'len_': len(result.text),
+    #                 'expire': datetime.datetime.utcfromtimestamp( int(u.expire)  ).strftime('%Y-%m-%d %H:%M:%S'),
+    #                 'text': caption_text,
+    #                 'caption_type': u.caption_type,
+    #                 'lang': u.lang,
+    #                 'caption_url': u.url
+    #             })
+    #
+    #             self.captions = pd.DataFrame(captions)
+    #         print(f" found {self.captions.shape} captions  \n{self.caption.head()}")
+    #
 
     def ingest(self):
         # invalid scrapes
