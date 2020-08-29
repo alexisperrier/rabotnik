@@ -63,8 +63,8 @@ class FlowCompleteVideos(Flow):
             where p.status = 'incomplete'
             and (pch.status = 'active' or pch.id is null)
             and fl.id is null
-            and v.published_at > now() - interval '1 month'
-            order by v.published_at desc
+            and ((v.published_at > now() - interval '1 month') or (v.published_at is null))
+            order by v.origin asc, v.published_at desc
          '''
 
     def decode(self):
