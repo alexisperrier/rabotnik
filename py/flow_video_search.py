@@ -121,7 +121,7 @@ class FlowVideoSearch(Flow):
             cond = self.df.keyword == d.keywords
             for k,v in self.df[cond].iterrows():
                 sql = f'''
-                    insert into colvids (collection_id, search_id, video_id, created_at, updated_at)
+                    insert into collection_items (collection_id, search_id, video_id, created_at, updated_at)
                     values
                     ({d.collection_id}, {d.search_id}, '{v.video_id}', now(), now())
                     on conflict (collection_id, video_id) DO NOTHING;
