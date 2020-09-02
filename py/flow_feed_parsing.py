@@ -21,17 +21,19 @@ class FlowFeedParsing(Flow):
 
     def __init__(self,**kwargs):
         self.flowname = 'feed_parsing'
+        # Sandbox
+        job.config['offset_factor'] = 0
+
         super().__init__(**kwargs)
         self.idname = 'channel_id'
-        self.operations = ['get_items','freeze','parse','ingest']
-
-    def tune_sql(self):         pass
+        self.operations = ['get_items','freeze','parse','ingest','ingest_collections']
 
     def code_sql(self):
         return '''
-            select ch.channel_id
+            select ch.channel_id, col.collection_id
             from channel ch
             join pipeline p on p.channel_id  = ch.channel_id
+            left join collection_items col on col.channel_id  = ch.channel_id
             left join flow as fl on fl.channel_id = ch.channel_id  and fl.flowname = 'feed_parsing'
             where ch.rss_next_parsing < now()
                  and p.status = 'active'
@@ -45,6 +47,10 @@ class FlowFeedParsing(Flow):
         channels = []
         videos   = {}
 
+        sql = f''' select channel_id, collection_id from collection_items  where channel_id in ('{"','".join(self.item_ids)}')  '''
+        self.collections = pd.read_sql(sql, job.db.conn)
+        print(f"self.collections {self.collections}")
+
         for channel_id in self.item_ids:
             result    = feedparser.parse( FlowFeedParsing.BASE_URL +  channel_id )
 
@@ -53,6 +59,8 @@ class FlowFeedParsing(Flow):
                 entries.rename(columns = self.__class__.varnames_feed2db, inplace = True)
                 entries['origin']       = 'feed_parsing'
                 entries['source']       = 'rss'
+                entries['in_collection'] = channel_id in self.collections.channel_id.unique()
+
                 entries['viewed_at']    = datetime.datetime.now().strftime('%Y-%m-%d')
                 entries['title']        = entries.title.apply(lambda d : TextUtils.valid_string_db(d) )
                 entries['summary']      = entries.summary.apply(lambda d : TextUtils.valid_string_db(d) )
@@ -90,7 +98,9 @@ class FlowFeedParsing(Flow):
         videos_created  = 0
         n_feed_error    = 0
         n_stat          = 0
-
+        # -------------------------------------
+        #  Channel update
+        # -------------------------------------
         for i,d in self.channels.iterrows():
             if not d.ok:
                 n_feed_error +=1
@@ -99,8 +109,10 @@ class FlowFeedParsing(Flow):
 
             Channel.update_from_feed(d)
             Pipeline.update_status(idname = 'channel_id',  item_id = d.channel_id, status = d.channel_status)
-            # self.release(d.channel_id)
 
+        # -------------------------------------
+        #  Videos
+        # -------------------------------------
         for channel_id, videos in self.videos.items():
             print("\n==",channel_id)
             # get list of videos already in the db
@@ -121,12 +133,53 @@ class FlowFeedParsing(Flow):
 
         print(f"{videos_created} new videos \t {n_feed_error} feed errors \t {n_stat} new video stats")
 
+    def ingest_collections(self):
+        # -------------------------------------
+        #  Collections
+        # -------------------------------------
+        print("====== insert into collections")
+        n_collection = 0
+        channel_ids = self.collections.channel_id.unique()
+        for channel_id in channel_ids:
+            collection_ids = self.collections[self.collections.channel_id == channel_id].collection_id.unique()
+            videos = self.videos[channel_id]
+            for collection_id in collection_ids:
+                print(f"---- channel_id {channel_id} \tcollection_ids {collection_ids}\tcollection_id {collection_id}")
+                for i,video in videos.iterrows():
+                    sql = f'''
+                        insert into collection_items (video_id, collection_id, origin, created_at, updated_at)
+                        values
+                        ('{video.video_id}', {collection_id}, 'feed_parsing', now(), now())  on conflict (video_id,collection_id) DO NOTHING;
+                    '''
+                    job.execute(sql)
+                    n = job.db.cur.rowcount
+                    n_collection += n
+        print(f"== {n_collection} videos have been added to collections {self.collections.collection_id.unique()}")
+
+
+
+
+        # for channel_id, videos in self.videos.items():
+        #     if channel_id in self.collections.keys():
+        #         for collection_id in self.collections[channel_id]:
+        #             print(f"channel_id {channel_id} \tcollection_id {collection_id}")
+        #             for i,d in videos.iterrows():
+        #                 sql = f'''
+        #                     insert into collection_items (video_id, collection_id, origin, created_at, updated_at)
+        #                     values
+        #                     ('{video_id}', {collection_id}, 'feed_parsing', now(), now())  on conflict (video_id,collection_id) DO NOTHING;
+        #                 '''
+        #                 job.execute(sql)
+        #                 n_collection += job.db.cur.rowcount
+        # print(f"== {n_collection} videos have been added to collections {self.collections.unique()}")
+
+
     @classmethod
     def activity_score(cls,entries):
+
         n_videos = entries.shape[0]
         if n_videos == 0:
             return '30 days', 'empty_feed', 0
-
         recent  =  time.mktime( entries.loc[0].published_parsed )
         oldest  =  time.mktime( entries.loc[ n_videos - 1 ].published_parsed )
         now     =  time.mktime(datetime.datetime.now().timetuple())
@@ -135,11 +188,13 @@ class FlowFeedParsing(Flow):
         n_days          = max(1,  divmod(now - oldest, 24*3600)[0] )
         activity_score  = np.round( n_videos / n_days, 2)
 
-        # 6 months since last video
-        if age_recent > 180:
+        if entries.in_collection.all():
+            activity  = 'active'
+            frequency = '24 hours'
+        elif age_recent > 180:          # 6 months since last video
             frequency   = '90 days'
             activity    = 'cold'
-        elif age_recent > 90:
+        elif age_recent > 90:           # 90 days since last video
             frequency   = '15 days'
             activity    = 'asleep'
         else:
@@ -155,7 +210,7 @@ class FlowFeedParsing(Flow):
             elif activity_score <= 5:
                 activity  = 'energised'
                 frequency = '12 hours'
-            else: # more than 5 videos per day
+            else:                       # more than 5 videos per day
                 activity  = 'frenetic'
                 frequency = '3 hours'
 
