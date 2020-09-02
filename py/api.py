@@ -1,4 +1,5 @@
 import requests
+import datetime
 
 class APIkey(object):
 
@@ -40,12 +41,31 @@ class APIrequest(object):
         self.base_url   = 'https://www.googleapis.com/youtube/v3/'
         self.url        = self.base_url + flow.endpoint
 
-        self.request_params = {
-            'key':      job.apikey,
-            'id':       ','.join(flow.item_ids),
-            'part':     flow.parts,
-            'fields':   flow.fields
-        }
+        if flow.endpoint == "search":
+            published_after = (datetime.datetime.now() - datetime.timedelta(days = flow.since_days)).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+            self.request_params = {
+                'key':                  job.apikey,
+                'part':                 flow.parts,
+                'fields':               flow.fields,
+                'maxResults':           50,
+                'order':                'date',
+                'safeSearch':           'none',
+                'type':                 'video',
+                'regionCode':           'FR',
+                'publishedAfter':       published_after,
+                'relevanceLanguage':    'fr',
+                'q':                    flow.keyword
+            }
+
+        else:
+
+            self.request_params = {
+                'key':      job.apikey,
+                'id':       ','.join(flow.item_ids),
+                'part':     flow.parts,
+                'fields':   flow.fields
+            }
 
     def get(self):
         '''

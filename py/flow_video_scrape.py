@@ -26,6 +26,7 @@ class FlowVideoScrape(Flow):
         return valid
 
     def __init__(self,**kwargs):
+        job.config['offset_factor'] = 0
         self.flowname                   = 'video_scrape'
         self.min_activity_score         = str(0.2)
         self.today                      = datetime.datetime.now(pytz.timezone('Europe/Amsterdam')).strftime("%Y-%m-%d")
