@@ -36,6 +36,10 @@ class FlowChannelTriage(Flow):
     def parse(self):
         ld = LangDetector()
         channels = []
+        sql = f''' select channel_id, collection_id from collection_items  where channel_id in ('{"','".join(self.item_ids)}')  '''
+        self.collections = pd.read_sql(sql, job.db.conn)
+        print(f"self.collections {self.collections}")
+
 
         for channel_id in self.item_ids:
             result    = feedparser.parse( FlowFeedParsing.BASE_URL +  channel_id )
@@ -57,7 +61,7 @@ class FlowChannelTriage(Flow):
                 # estimate activity
                 entries = pd.io.json.json_normalize(result.entries)[FlowChannelTriage.varnames_feed2db.keys()]
                 entries.rename(columns = FlowChannelTriage.varnames_feed2db, inplace = True)
-
+                entries['in_collection'] = channel_id in self.collections.channel_id.unique()
                 entries.sort_values(by = 'published_at', ascending = False, inplace = True)
                 entries.reset_index(inplace = True, drop = True)
                 frequency, activity, activity_score = FlowFeedParsing.activity_score(entries)
