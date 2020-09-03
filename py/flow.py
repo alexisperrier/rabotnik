@@ -17,7 +17,7 @@ class Flow(object):
 
         self.ok         = True
         self.channel_growth = job.channel_growth
-        self.operations = ['get_items','freeze','query_api','decode','prune','ingest']
+        self.operations = ['get_items','freeze','query_api','decode','prune','ingest','bulk_release']
         self.get_sql()
         self.tune_sql()
         print("--"*20)
@@ -66,11 +66,15 @@ class Flow(object):
         self.data       = pd.read_sql(self.sql, job.db.conn)
         self.item_ids   = list(self.data[:min([self.max_items, self.data.shape[0]])][self.idname].values)
         # add forced updates at the top of the pile for immediate processing
-        sql = f''' select {self.idname} from flow where flowname = '{self.flowname}' and mode = 'forced' '''
-        tmp = pd.read_sql(sql, job.db.conn)
-        if tmp.shape[0]> 0:
-            self.item_ids = list(tmp[self.idname].values) + self.item_ids
-            self.item_ids = self.item_ids[:min([self.max_items, len(self.item_ids) ]) ]
+        if job.forced_flow:
+            print("======= handling forced items in flow")
+            sql = f''' select {self.idname} from flow where flowname = '{self.flowname}' and mode = 'forced' '''
+            tmp = pd.read_sql(sql, job.db.conn)
+            self.forced = tmp
+            print(f"-- {tmp.shape} forced items {self.idname} ")
+            if tmp.shape[0]> 0:
+                self.item_ids = list(tmp[self.idname].values) + self.item_ids
+                self.item_ids = self.item_ids[:min([self.max_items, len(self.item_ids) ]) ]
 
         if not self.counting:
             print(f"{len(self.item_ids)} items")
@@ -89,12 +93,13 @@ class Flow(object):
         else:
             self.sql = self.code_sql()
 
-        if not self.counting:
-            self.sql = self.sql + f" limit {self.max_items}"
 
         # offset factor is set according to the hosting instance
-        if job.config['offset_factor'] > 0:
-            self.sql = self.sql + f" offset {self.max_items * job.config['offset_factor']}"
+        if self.sql is not None:
+            if not self.counting:
+                self.sql = self.sql + f" limit {self.max_items}"
+            if job.config['offset_factor'] > 0:
+                self.sql = self.sql + f" offset {self.max_items * job.config['offset_factor']}"
 
 
     def prune(self):
@@ -132,12 +137,16 @@ class Flow(object):
         '''
             rm the item_id from the flow table
         '''
-        sql = f'''
-            delete from flow where flowname = '{self.flowname}'
-                and {self.idname} in  ('{"','".join(self.item_ids)}')
-        '''
-        job.execute(sql)
-        return job.db.cur.rowcount
+        if  hasattr(self, 'forced'):
+            sql = f'''
+                delete from flow where flowname = '{self.flowname}'
+                    and {self.idname} in  ('{"','".join(self.forced[self.idname].values)}')
+                    and mode = 'forced'
+            '''
+            job.execute(sql)
+            return job.db.cur.rowcount
+        else:
+            return 0
 
     def update_query(self):
         '''

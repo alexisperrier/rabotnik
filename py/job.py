@@ -18,6 +18,10 @@ class Job(object):
         self.reco_folder    = os.path.join(self.project_root, 'reco')
         self.img_folder     = os.path.join(self.project_root, 'img')
 
+        self.forced_flow = False
+        if 'forced_flow' in config.keys():
+            self.forced_flow = bool(distutils.util.strtobool(config['forced_flow']))
+
         self.channel_growth = bool(distutils.util.strtobool(config['channel_growth']))
         self.plotshow   = bool(distutils.util.strtobool(config['plotshow']))
         self.verbose    = bool(distutils.util.strtobool(config['job_verbose']))

@@ -26,7 +26,8 @@ class FlowVideoScrape(Flow):
         return valid
 
     def __init__(self,**kwargs):
-        job.config['offset_factor'] = 0
+        job.config['offset_factor']     = 0
+        self.save_html_file             = False
         self.flowname                   = 'video_scrape'
         self.min_activity_score         = str(0.2)
         self.today                      = datetime.datetime.now(pytz.timezone('Europe/Amsterdam')).strftime("%Y-%m-%d")
@@ -34,9 +35,7 @@ class FlowVideoScrape(Flow):
         self.idname                     = 'video_id'
         self.extra_sleep_time           = 4
         self.min_sleep_time             = 2
-        self.operations                 = ['get_items','freeze','request_pages','parse','ingest','parse_captions']
-        if job.channel_growth:
-            self.operations.append('postop')
+        self.operations                 = ['get_items','freeze','request_pages','parse','ingest','parse_captions','postop','bulk_release']
 
 
     def code_sql(self):
@@ -59,8 +58,6 @@ class FlowVideoScrape(Flow):
                 order by v.published_at desc
          '''
 
-    def tune_sql(self): pass
-
     def request_pages(self):
         data = []
         invalid_count = 0
@@ -78,7 +75,7 @@ class FlowVideoScrape(Flow):
 
             data.append({'video_id': video_id, 'valid': FlowVideoScrape.validate_page(page_html), 'page_html': page_html})
 
-            if False:
+            if self.save_html_file:
                 with open(f"./tmp/{video_id}.html", 'w') as f:
                     f.write(page_html)
 

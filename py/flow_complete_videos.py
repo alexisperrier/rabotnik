@@ -36,17 +36,7 @@ class FlowCompleteVideos(Flow):
         status_str      = "privacyStatus,uploadStatus,rejectionReason"
         content_str     = 'duration,caption'
         self.fields     = f"items(id,snippet({snippet_str}),contentDetails({content_str}),status({status_str}),topicDetails(topicCategories),recordingDetails(location))"
-        if self.channel_growth:
-            self.operations.append('postop')
-
-    def prune(self):            super().prune()
-    def execution_time(self):   super().execution_time()
-    def freeze(self):           super().freeze()
-    def get_items(self):        super().get_items()
-    def get_sql(self):          super().get_sql()
-    def query_api(self):        super().query_api()
-    def release(self,item_id):  super().release(item_id)
-    def update_query(self):     super().update_query()
+        self.operations = ['get_items', 'freeze', 'query_api', 'decode', 'prune', 'ingest', 'postop', 'bulk_release']
 
     def code_sql(self):
         '''
@@ -84,7 +74,7 @@ class FlowCompleteVideos(Flow):
             self.df['wikitopics'] = self.df.topic_categories.apply(lambda d : TextUtils.extract_topic_categories(d))
 
     def ingest(self):
-        print(f"== {self.df.shape} to insert")
+        print(f"== {self.df.shape} videos to update")
         for i,d in self.df.iterrows():
             Video.update(d)
 
@@ -107,9 +97,6 @@ class FlowCompleteVideos(Flow):
             else:
                 Pipeline.update_status(idname = 'video_id',  item_id = d.video_id, status = 'unknown_channel')
 
-    def tune_sql(self):
-        pass
-
     def postop(self):
         '''
             Checks the existence of the channels
@@ -129,10 +116,6 @@ class FlowCompleteVideos(Flow):
             missing_channel_ids = [id for id in channel_ids if id not in existing_channel_ids]
 
             data = self.df[self.df.channel_id.isin(missing_channel_ids)].copy()
-            # find origin from videos
-            # sql     = f''' select video_id, origin from video where video_id in ('{"','".join(data.video_id.values)}') '''
-            # origins = pd.read_sql(sql, job.db.conn)
-            # data    = data.merge(origins, on = 'video_id', how = 'outer')
 
             print("--missing_channel_ids:\t",missing_channel_ids)
             for i,d in data.iterrows():

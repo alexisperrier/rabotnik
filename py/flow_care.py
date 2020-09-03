@@ -28,7 +28,7 @@ class FlowCare(Flow):
             from channel ch
             where  p.channel_id = ch.channel_id
                 and p.status = 'active'
-                and (ch.country is not null) and (ch.country !='') and (ch.country != 'FR');
+                and (ch.country is not null) and (ch.country !='') and (ch.country != 'FR') and (ch.country != 'RE');
         '''
 
     def sql_enforce_lang(self):

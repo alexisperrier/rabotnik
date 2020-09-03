@@ -21,9 +21,6 @@ class FlowFeedParsing(Flow):
 
     def __init__(self,**kwargs):
         self.flowname = 'feed_parsing'
-        # Sandbox
-        job.config['offset_factor'] = 0
-
         super().__init__(**kwargs)
         self.idname = 'channel_id'
         self.operations = ['get_items','freeze','parse','ingest','ingest_collections']
