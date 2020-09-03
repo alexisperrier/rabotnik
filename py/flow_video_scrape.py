@@ -15,15 +15,37 @@ class FlowVideoScrape(Flow):
 
     @classmethod
     def validate_page(self, page_html):
-        valid = (
-            (page_html is not None)
-            and ("Sorry for the interruption" not in page_html)
-            and ("nous excuser pour cette interruption" not in page_html)
-        )
-        if not valid:
-            print(f"page backlisted or empty for video")
+
+        valid_html_exists = page_html is not None
+
+        playability = 'unknown'
+        if valid_html_exists:
+            start_ = '"playabilityStatus":{'
+            end_ = '"}'
+            playability = re.findall('{}(.+?){}'.format(start_, end_), page_html)
+            valid_playable = not any(["errorScreen" in s for s in playability  ])
+
+            valid_blacklisted = ("Sorry for the interruption" not in page_html) and ("nous excuser pour cette interruption" not in page_html)
+
+        valid = all([valid_html_exists, valid_playable, valid_blacklisted])
+
         self.ok = valid
-        return valid
+
+        validity = {
+            'valid': valid,
+            'valid_html_exists': valid_html_exists,
+            'valid_playable': valid_playable,
+            'valid_blacklisted': valid_blacklisted,
+            'playability': playability
+        }
+        return validity
+
+    # Add video removed detection
+    '''
+    view-source:https://www.youtube.com/watch?v=03iEgSRppV0
+    "playabilityStatus":{"status":"ERROR","reason":"Video unavailable","errorScreen":{"playerErrorMessageRenderer":{"subreason":{"simpleText":"This video is no longer available because the YouTube account associated with this video has been terminated."},"reason":{"simpleText":"Video unavailable"},
+    '''
+
 
     def __init__(self,**kwargs):
         job.config['offset_factor']     = 0
@@ -35,7 +57,7 @@ class FlowVideoScrape(Flow):
         self.idname                     = 'video_id'
         self.extra_sleep_time           = 4
         self.min_sleep_time             = 2
-        self.operations                 = ['get_items','freeze','request_pages','parse','ingest','parse_captions','postop','bulk_release']
+        self.operations                 = ['get_items','freeze','request_pages','parse','ingest','parse_captions','postop','availability','bulk_release']
 
 
     def code_sql(self):
@@ -70,16 +92,18 @@ class FlowVideoScrape(Flow):
             page_html   = text.replace('\\u0026', '&').replace('\\', '')
             print(f"-- [{k}/{self.max_items}] {video_id}  len: {len(page_html)}")
             k +=1
-            if not FlowVideoScrape.validate_page(page_html):
+            validity = FlowVideoScrape.validate_page(page_html)
+            if not validity['valid']:
                 invalid_count +=1
-
-            data.append({'video_id': video_id, 'valid': FlowVideoScrape.validate_page(page_html), 'page_html': page_html})
+            d = {'video_id': video_id,'page_html': page_html}
+            d.update(validity)
+            data.append(d)
 
             if self.save_html_file:
                 with open(f"./tmp/{video_id}.html", 'w') as f:
                     f.write(page_html)
 
-            self.data = pd.DataFrame(data)
+        self.data = pd.DataFrame(data)
 
     def parse(self):
         df = []
@@ -108,6 +132,30 @@ class FlowVideoScrape(Flow):
 
         self.df = pd.DataFrame(df)
 
+    def availability(self):
+        for i,d in self.data[~self.data.valid].iterrows():
+            sql = f'''
+                insert into caption (video_id, status, caption, processed_at)
+                values ('{d.video_id}',
+                    'unavailable',
+                    $${d.playability}$$,
+                    now()
+                )
+                ON CONFLICT (video_id)  DO NOTHING;
+            '''
+            print(sql)
+            if not d.valid_playable:
+                print("-- updating vidoe and channel as unavailable")
+                sql = f"update pipeline set status = 'unavailable' where video_id = '{d.video_id}'"
+                job.execute(sql)
+                sql = f"update video set footer = $${d.playability}$$ where video_id = '{d.video_id}'"
+                job.execute(sql)
+
+
+            job.execute(sql)
+            res_count = job.db.cur.rowcount
+
+
     def parse_captions(self):
         print("--" * 10," Caption retrieval")
         HTML_TAG_REGEX = re.compile(r'<[^>]*>', re.IGNORECASE)
@@ -118,7 +166,6 @@ class FlowVideoScrape(Flow):
         self.caption_urls = pd.DataFrame()
         urls = []
         for i,d in self.data[self.data.valid].iterrows():
-        # for i,d in op.data[op.data.valid].iterrows():
             m = re.findall('{}(.+?){}'.format(start_, end_), d.page_html)
             if len(m) >0:
                 for url in m :
@@ -131,7 +178,7 @@ class FlowVideoScrape(Flow):
                             })
 
         urls = pd.DataFrame(urls).drop_duplicates()
-        # urls = urls[urls.expire == urls.expire.max() ].copy()
+
         self.caption_urls = urls.copy()
         print(f" found {self.caption_urls.shape[0]} caption urls ")
 
@@ -142,7 +189,8 @@ class FlowVideoScrape(Flow):
             result = requests.Session().get(u.url)
             if (result.status_code == 200) and (len(result.text) > 0):
 
-                caption_text = [re.sub(HTML_TAG_REGEX, '', html.unescape(xml_element.text)).replace("\n",' ').replace("\'","'")
+                caption_text = [
+                    re.sub(HTML_TAG_REGEX, '', html.unescape(xml_element.text)).replace("\n",' ').replace("\'","'")
                             for xml_element in ElementTree.fromstring(result.text)
                             if xml_element.text is not None
                         ]

@@ -49,3 +49,36 @@ order by p.status limit 2;
 
 insert into flow (video_id, flowname, mode, start_at) values ('050ZuQmbt8o', 'video_scrape','forced', now());
 insert into flow (video_id, flowname, mode, start_at) values ('015SPE4raAY', 'video_scrape','forced', now());
+
+insert into flow (video_id, flowname, mode, start_at) values ('03iEgSRppV0', 'video_scrape','forced', now());
+
+
+-- complete_channels
+
+select ch.channel_id
+from channel ch
+join video v on v.channel_id = ch.channel_id
+where v.video_id in (select distinct video_id from collection_items)
+and ch.title is null
+limit 100;
+
+select ch.channel_id
+from channel ch
+join video v on v.channel_id = ch.channel_id
+where ch.title is null
+and v.video_id in (select distinct video_id from collection_items)
+limit 100;
+
+select ch.channel_id, p.status
+from channel ch
+join pipeline p on p.channel_id = ch.channel_id
+where ch.title is null
+limit 100;
+
+
+select ch.channel_id
+from video v
+join channel ch on v.channel_id = ch.channel_id
+where v.video_id in (select distinct video_id from collection_items)
+and ch.title is null
+limit 100;
