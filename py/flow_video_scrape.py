@@ -143,17 +143,16 @@ class FlowVideoScrape(Flow):
                 )
                 ON CONFLICT (video_id)  DO NOTHING;
             '''
-            print(sql)
+            job.execute(sql)
+            res_count = job.db.cur.rowcount
             if not d.valid_playable:
-                print("-- updating vidoe and channel as unavailable")
+                print("-- updating video")
                 sql = f"update pipeline set status = 'unavailable' where video_id = '{d.video_id}'"
                 job.execute(sql)
                 sql = f"update video set footer = $${d.playability}$$ where video_id = '{d.video_id}'"
                 job.execute(sql)
 
 
-            job.execute(sql)
-            res_count = job.db.cur.rowcount
 
 
     def parse_captions(self):

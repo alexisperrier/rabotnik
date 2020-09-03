@@ -10,7 +10,7 @@ class FlowCare(Flow):
         super().__init__(**kwargs)
         self.operations = ['quality','care']
         self.care_tasks = ['enforce_border','enforce_lang','set_pubdate','check_pubdate','flow_cleanup','helm_cleanup','cold_videos']
-        self.max_items = 2
+        self.max_items = 16
 
         self.quality_tasks = ['complete_videos','complete_channels','video_scrape','video_stats']
 
