@@ -20,10 +20,9 @@ class Flow(object):
         self.operations = ['get_items','freeze','query_api','decode','prune','ingest','bulk_release']
         self.get_sql()
         self.tune_sql()
-        if self.sql is not None:
-            print("--"*20)
-            print(self.sql)
-            print("--"*20)
+        print("--"*20)
+        print(self.sql)
+        print("--"*20)
 
     def code_sql(self): pass
     def ingest(self):   pass
