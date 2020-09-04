@@ -83,7 +83,7 @@ class FlowVideoComments(Flow):
                 }
 
             discussions.append(discussion)
-            print(discussion)
+            print(f"-- {discussion['video_id']} {discussion['total_results']} {discussion['error']}")
             if 'items' in data.keys():
                 df = pd.io.json.json_normalize(data['items']).rename(columns = self.__class__.varnames_api2db)
                 if not df.empty:
@@ -101,7 +101,6 @@ class FlowVideoComments(Flow):
 
 
         self.discussions = pd.DataFrame(discussions)
-        print(self.discussions)
         self.comments   = pd.DataFrame(comments)
         if not self.comments.empty:
             self.comments.loc[self.comments['parent_id'].isna(), 'parent_id'] = ''
