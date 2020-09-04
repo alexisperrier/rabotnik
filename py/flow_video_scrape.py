@@ -146,7 +146,7 @@ class FlowVideoScrape(Flow):
             job.execute(sql)
             res_count = job.db.cur.rowcount
             if not d.valid_playable:
-                print("-- {d.video_id}: {d.playability}")
+                print(f"-- {d.video_id}: {d.playability}")
                 sql = f"update pipeline set status = 'unavailable' where video_id = '{d.video_id}'"
                 job.execute(sql)
                 sql = f"update video set footer = $${d.playability}$$ where video_id = '{d.video_id}'"
