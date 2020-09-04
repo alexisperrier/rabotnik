@@ -154,23 +154,6 @@ class FlowFeedParsing(Flow):
         print(f"== {n_collection} videos have been added to collections {self.collections.collection_id.unique()}")
 
 
-
-
-        # for channel_id, videos in self.videos.items():
-        #     if channel_id in self.collections.keys():
-        #         for collection_id in self.collections[channel_id]:
-        #             print(f"channel_id {channel_id} \tcollection_id {collection_id}")
-        #             for i,d in videos.iterrows():
-        #                 sql = f'''
-        #                     insert into collection_items (video_id, collection_id, origin, created_at, updated_at)
-        #                     values
-        #                     ('{video_id}', {collection_id}, 'feed_parsing', now(), now())  on conflict (video_id,collection_id) DO NOTHING;
-        #                 '''
-        #                 job.execute(sql)
-        #                 n_collection += job.db.cur.rowcount
-        # print(f"== {n_collection} videos have been added to collections {self.collections.unique()}")
-
-
     @classmethod
     def activity_score(cls,entries):
 
