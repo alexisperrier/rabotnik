@@ -10,6 +10,7 @@ from .flow_channel_topics import *
 from .flow_channel_triage import *
 from .flow_complete_videos import *
 from .flow_complete_channels import *
+from .flow_video_comments import *
 from .flow_video_scrape import *
 from .flow_video_search import *
 

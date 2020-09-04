@@ -9,6 +9,44 @@ class Model(object):
     def __init__(self):
         pass
 
+
+class Comment(Model):
+    @classmethod
+    def create(cls,d):
+        try:
+            sql = f'''
+                    insert into comments (comment_id, video_id, discussion_id, parent_id,
+                        author_name, author_channel_id,
+                        text, reply_count, like_count,
+                        published_at, created_at, updated_at)
+                    values ('{d.comment_id}', '{d.video_id}', {d.discussion_id}, '{d.parent_id}',
+                        $${d.author_name}$$, '{d.author_channel_id}',
+                        $${d.text}$$, {d.reply_count}, {d.like_count},
+                        '{d.published_at}', now(), now())
+                        on conflict (comment_id) DO NOTHING
+            '''
+            job.execute(sql)
+            return job.db.cur.rowcount
+        except:
+            return None
+
+
+
+class Discussion(Model):
+    @classmethod
+    def create(cls,d):
+        try:
+            sql = f'''
+                    insert into discussions (video_id, total_results, results_per_page, error, created_at, updated_at)
+                    values ('{d.video_id}', {d.total_results}, {d.results_per_page}, $${d.error}$$, now(), now())
+                    on conflict (video_id) DO NOTHING
+                    RETURNING id;
+            '''
+            job.execute(sql)
+            return job.db.cur.fetchone()[0]
+        except:
+            return None
+
 class VideoStat(Model):
 
     @classmethod

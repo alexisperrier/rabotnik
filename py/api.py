@@ -58,6 +58,17 @@ class APIrequest(object):
                 'q':                    flow.keyword
             }
 
+
+        elif flow.endpoint == "commentThreads":
+
+            self.request_params = {
+                'key':      job.apikey,
+                'video_id':       flow.video_id,
+                'part':     flow.parts,
+                'maxResults': 100,
+                'moderationStatus': 'published',
+                'order': 'relevance'
+            }
         else:
 
             self.request_params = {
