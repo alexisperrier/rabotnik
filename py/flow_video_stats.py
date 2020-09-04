@@ -48,6 +48,7 @@ class FlowVideoStats(Flow):
         super().decode()
         self.df['source']    = 'api'
         self.df['viewed_at'] = datetime.datetime.now().strftime('%Y-%m-%d')
+        self.df.loc[self.df.views.isna(), 'views'] = -1
 
     def ingest(self):
         print(f"== {self.df.shape} to insert")
