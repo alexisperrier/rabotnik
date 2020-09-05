@@ -1,3 +1,4 @@
+from .text import *
 from .job import *
 import datetime
 import pytz
