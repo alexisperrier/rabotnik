@@ -5,7 +5,11 @@ class FlowVideoStats(Flow):
 
     varnames_api2db = {
         'id': 'video_id',
-        'statistics.viewCount': "views"
+        'statistics.viewCount': "views",
+        'statistics.likeCount': "like_count",
+        'statistics.dislikeCount': "dislike_count",
+        'statistics.favoriteCount': "favorite_count",
+        'statistics.commentCount': "comment_count",
     }
 
     def __init__(self,**kwargs):
@@ -14,7 +18,8 @@ class FlowVideoStats(Flow):
         self.endpoint   = 'videos'
         self.idname     = 'video_id'
         self.parts      = 'statistics'
-        self.fields     = 'items(id,statistics(viewCount))'
+        self.fields     = 'items(id,statistics(viewCount),statistics(likeCount),statistics(dislikeCount),statistics(favoriteCount),statistics(commentCount))'
+
 
     def tune_sql(self):
         timespan_01 = (datetime.datetime.now() - datetime.timedelta(days = 1)).strftime('%Y-%m-%d')
@@ -48,7 +53,7 @@ class FlowVideoStats(Flow):
         super().decode()
         self.df['source']    = 'api'
         self.df['viewed_at'] = datetime.datetime.now().strftime('%Y-%m-%d')
-        self.df.loc[self.df.views.isna(), 'views'] = -1
+        self.df.loc[self.df.views.isna(), 'views'] = 0
 
     def ingest(self):
         print(f"== {self.df.shape} to insert")

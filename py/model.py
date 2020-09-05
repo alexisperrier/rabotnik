@@ -52,10 +52,17 @@ class VideoStat(Model):
     @classmethod
     def create(cls,d):
         try:
-            views = int(d.views)
+            fields = "video_id, source, viewed_at"
+            values = f"'{d.video_id}', '{d.source}', '{d.viewed_at}'"
+
+            for field in ['views','like_count','dislike_count','favorite_count','comment_count']:
+                if hasattr(d,field):
+                    val = int(d[field])
+                    fields += f",{field}"
+                    values += f", {val}"
             sql = f'''
-                    insert into video_stat as cs (video_id,  views, source, viewed_at)
-                    values ('{d.video_id}', {views}, '{d.source}', '{d.viewed_at}')
+                    insert into video_stat as cs ({fields})
+                    values ({values})
                     on conflict (video_id, viewed_at) DO NOTHING;
             '''
             job.execute(sql)
