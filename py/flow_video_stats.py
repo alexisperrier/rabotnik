@@ -24,7 +24,7 @@ class FlowVideoStats(Flow):
     def tune_sql(self):
         timespan_01 = (datetime.datetime.now() - datetime.timedelta(days = 1)).strftime('%Y-%m-%d')
         # timespan_02 = "','".join( [(datetime.datetime.now() - datetime.timedelta(days = d)).strftime('%Y-%m-%d') for d in [1,2,3,4,5,6,7,14,21,28,60]])
-        timespan_02 = "','".join( [(datetime.datetime.now() - datetime.timedelta(days = d)).strftime('%Y-%m-%d') for d in [15,30,60]])
+        timespan_02 = "','".join( [(datetime.datetime.now() - datetime.timedelta(days = d)).strftime('%Y-%m-%d') for d in [2,7,15,30,60]])
         self.sql = self.sql.replace('{timespan_01}', timespan_01).replace( '{timespan_02}', timespan_02)
 
     def code_sql(self):

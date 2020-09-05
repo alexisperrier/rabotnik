@@ -46,6 +46,7 @@ class FlowVideoComments(Flow):
             left join flow as fl on (fl.video_id = v.video_id and fl.flowname = 'video_comments')
             where d.id is null
             and fl.id is null
+            and v.published_at < now() - interval '2 days'
             order by v.published_at asc
          '''
 
