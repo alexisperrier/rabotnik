@@ -52,7 +52,7 @@ where vr.src_video_id is null
 and p.status != 'unavailable'
 order by p.status limit 2;
 
-insert into flow (video_id, flowname, mode, start_at) values ('Go0GEMOOZus', 'video_stats','forced', now());
+insert into flow (video_id, flowname, mode, start_at) values ('OvKawwJiOWs', 'video_stats','forced', now());
 
 
 insert into flow (video_id, flowname, mode, start_at) values ('015SPE4raAY', 'video_scrape','forced', now());

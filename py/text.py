@@ -29,15 +29,17 @@ class LangDetector(object):
 
 
 class TextUtils(object):
+
     @classmethod
-    def valid_string_db(cls,string):
-        if string is None:
-            string = ''
-        string = str(string)
-        string = string.replace("$","#")
-        string = string.replace("\n"," ")
-        string = string.replace("\r"," ")
-        return string
+    def to_db(cls,text,lr = False):
+        if text is None:
+            text = ''
+        text = str(text)
+        text = text.replace("$","<dlr>")
+        if lr:
+            text = text.replace("\n"," ")
+            text = text.replace("\r"," ")
+        return text
 
     @classmethod
     def extract_topic_categories(cls,topics):

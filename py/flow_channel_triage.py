@@ -116,7 +116,7 @@ class FlowChannelTriage(Flow):
 
             sql = f'''
                 update channel set
-                    title       = $${d.title}$$,
+                    title       = $$TextUtils.to_db({d.title})$$,
                     {str_activity}
                     {str_activity_score}
                     rss_next_parsing = NOW() + interval '{d.frequency}',

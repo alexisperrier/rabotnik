@@ -144,7 +144,10 @@ class FlowVideoComments(Flow):
                 if d.video_id in self.comments.video_id.unique():
                     self.comments.loc[self.comments.video_id == d.video_id, 'discussion_id'] = discussion_id
 
+        # why do we have Nan as discussion_id?
         if not self.comments.empty:
+            # force nan to 0 before casting as int
+            # self.comments[self.comments['discussion_id'].isna(), 'discussion_id'] = 0
             self.comments['discussion_id'] = self.comments['discussion_id'].astype(int)
         n_comments = 0
         print(f"== {self.comments.shape[0]} comments to insert")

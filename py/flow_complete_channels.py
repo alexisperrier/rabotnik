@@ -63,8 +63,8 @@ class FlowCompleteChannels(Flow):
             self.df['lang'] = self.df.lang_predicted.apply(lambda d : d['lang'])
 
             self.df.loc[ self.df.show_related.isna(), 'show_related']  = ''
-            self.df['title']        = self.df.title.apply(lambda d : TextUtils.valid_string_db(d) )
-            self.df['description']  = self.df.description.apply(lambda d : TextUtils.valid_string_db(d) )
+            self.df['title']        = self.df.title.apply(lambda d : TextUtils.to_db(d) )
+            self.df['description']  = self.df.description.apply(lambda d : TextUtils.to_db(d) )
 
 
     def ingest(self):

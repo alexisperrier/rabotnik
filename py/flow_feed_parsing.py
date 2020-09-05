@@ -59,8 +59,8 @@ class FlowFeedParsing(Flow):
                 entries['in_collection'] = channel_id in self.collections.channel_id.unique()
 
                 entries['viewed_at']    = datetime.datetime.now().strftime('%Y-%m-%d')
-                entries['title']        = entries.title.apply(lambda d : TextUtils.valid_string_db(d) )
-                entries['summary']      = entries.summary.apply(lambda d : TextUtils.valid_string_db(d) )
+                entries['title']        = entries.title.apply(lambda d : TextUtils.to_db(d) )
+                entries['summary']      = entries.summary.apply(lambda d : TextUtils.to_db(d) )
 
                 entries.sort_values(by = 'published_at', ascending = False, inplace = True)
                 entries.reset_index(inplace = True, drop = True)

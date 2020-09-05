@@ -69,8 +69,8 @@ class FlowCompleteVideos(Flow):
                     self.df[col] = ''
 
             self.df.loc[self.df['live_content']== 'none', 'live_content'] = ''
-            self.df['title']      = self.df.title.apply(lambda d : TextUtils.valid_string_db(d) )
-            self.df['summary']    = self.df.summary.apply(lambda d : TextUtils.valid_string_db(d) )
+            self.df['title']      = self.df.title.apply(lambda d : TextUtils.to_db(d) )
+            self.df['summary']    = self.df.summary.apply(lambda d : TextUtils.to_db(d) )
             self.df['wikitopics'] = self.df.topic_categories.apply(lambda d : TextUtils.extract_topic_categories(d))
 
     def ingest(self):
