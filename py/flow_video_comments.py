@@ -1,4 +1,5 @@
 from .flow import *
+from .flow_channel_stats import *
 import datetime
 
 class FlowVideoComments(Flow):
@@ -30,12 +31,22 @@ class FlowVideoComments(Flow):
         self.idname     = 'video_id'
         # self.max_items  = 1
         self.parts      = 'snippet,replies'
-        self.operations = ['get_items','freeze','query_api','decode', 'ingest', 'bulk_release']
+        self.operations = ['get_items','freeze','query_api','decode', 'ingest', 'postop', 'bulk_release']
 
 
     def code_sql(self):
+        '''
+            comments only for videos in collections
+        '''
         return '''
-            select video_id from video order by random() limit 10
+            select v.video_id
+            from video v
+            join collection_items ci on ci.video_id = v.video_id
+            left join discussions d on d.video_id = v.video_id
+            left join flow as fl on (fl.video_id = v.video_id and fl.flowname = 'video_comments')
+            where d.id is null
+            and fl.id is null
+            order by v.published_at asc
          '''
 
     def query_api(self):
@@ -92,7 +103,7 @@ class FlowVideoComments(Flow):
                         for repcom in df[~df['replies.comments'].isna()]['replies.comments']:
                             for rep in repcom:
                                 snippet = rep['snippet']
-                                snippet['authorChannelId']= snippet['authorChannelId']['value']
+                                snippet['author_channel_id']= snippet['authorChannelId']['value']
                                 snippet['comment_id'] = rep['id']
                                 replies.append(snippet)
                         repdf   = pd.DataFrame(replies).rename(columns = self.__class__.varnames_api2db)
@@ -103,11 +114,25 @@ class FlowVideoComments(Flow):
         self.discussions = pd.DataFrame(discussions)
         self.comments   = pd.DataFrame(comments)
         if not self.comments.empty:
-            self.comments.loc[self.comments['parent_id'].isna(), 'parent_id'] = ''
-            self.comments.loc[self.comments['author_name'].isna(), 'author_name'] = ''
-            self.comments.loc[self.comments['author_channel_id'].isna(), 'author_channel_id'] = ''
-            self.comments.loc[self.comments['reply_count'].isna(), 'reply_count'] = 0
-            self.comments['reply_count'] = self.comments['reply_count'].astype(int)
+            if 'parent_id' in self.comments.columns:
+                self.comments.loc[self.comments['parent_id'].isna(), 'parent_id'] = ''
+            else:
+                self.comments['parent_id'] = ''
+            if 'author_name' in self.comments.columns:
+                self.comments.loc[self.comments['author_name'].isna(), 'author_name'] = ''
+            else:
+                self.comments['author_name'] = ''
+            if 'author_channel_id' in self.comments.columns:
+                self.comments.loc[self.comments['author_channel_id'].isna(), 'author_channel_id'] = ''
+            else:
+                self.comments['author_channel_id'] = ''
+            if 'reply_count' in self.comments.columns:
+                self.comments.loc[self.comments['reply_count'].isna(), 'reply_count'] = 0
+                self.comments['reply_count'] = self.comments['reply_count'].astype(int)
+            else:
+                self.comments['reply_count'] = 0
+            # add is_channel
+
 
 
     def ingest(self):
@@ -128,7 +153,50 @@ class FlowVideoComments(Flow):
         print(f"== {n_comments} inserted")
 
 
+    def postop(self):
+        '''
+        - all unique channel_ids get stats
+        - add video_count to comments: author_video_count
+        - if video > 0 and not exist => add to channels
+        '''
+        if self.comments.empty:
+            return None
+        print("==" * 20)
+        comments_channel_ids = list(self.comments.author_channel_id.unique())
+        # comments_channel_ids = list(op.comments.author_channel_id.unique())
+        sql = f'''
+            select channel_id from channel where channel_id in ('{"','".join(comments_channel_ids)}')
+        '''
+        existing_channel_ids = pd.read_sql(sql, job.db.conn).channel_id.values
+        channel_ids = [id for id in comments_channel_ids if id not in existing_channel_ids]
+        print(f" {len(comments_channel_ids)} channels, {len(existing_channel_ids)} exists, {len(channel_ids)} unknown")
+        params = {'flowtag' : False, 'mode' : 'local', 'counting' : False, 'max_items': 50}
+        opcs = FlowChannelStats(**params)
 
+        stats = pd.DataFrame()
+        start, step = 0,50
+        print(f"checking stats for {len(channel_ids)} channels ")
+        while start < len(channel_ids) :
+            print(f"- {start}/{len(channel_ids)}")
+            opcs.item_ids = channel_ids[start: np.min([len(channel_ids), start + 50])]
+            opcs.query_api()
+            opcs.decode()
+            stats = pd.concat([stats, opcs.df])
+            start += step
+
+        for c in ['views', 'subscribers', 'videos']:
+            stats[c] = stats[c].astype(int)
+
+        stats['n'] = stats['views'] + stats['subscribers'] + stats['videos']
+        stats = stats[(stats.n > 10) & (stats.videos > 2)].reset_index()
+        channel_count = 0
+        print(f"-- Creating {stats.shape[0]} channels")
+        for i,d in stats.iterrows():
+            print(f" {d.channel_id} \tv: {d.videos} \ts: {d.subscribers} \tviews: {d.views}  ")
+            channel_count += Channel.create(d.channel_id, 'commentators')
+            Pipeline.create(idname = 'channel_id',item_id = d.channel_id)
+            ChannelStat.upsert(d)
+        print(f"-- {channel_count} channels created")
 
 
 # -----------------

@@ -28,7 +28,7 @@ class Comment(Model):
             job.execute(sql)
             return job.db.cur.rowcount
         except:
-            return None
+            return 0
 
 
 
