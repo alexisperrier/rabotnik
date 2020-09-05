@@ -18,7 +18,7 @@ from pathlib import Path
 
 if __name__ == '__main__':
 
-    flowname  = 'video_comments'
+    flowname  = 'video_stats'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
     klass = globals()[classname]
     job.config['offset_factor'] = 0

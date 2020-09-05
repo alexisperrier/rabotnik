@@ -1,3 +1,8 @@
+insert into comments (comment_id, video_id, discussion_id, parent_id, author_name, author_channel_id, text, reply_count, like_count, published_at, created_at, updated_at)
+values ('Ugzw2wn5S40JNTA3TG14AaABAg', 'wlt0AOgCUAM', 5.0, 'nan', 'Qui tente a rien n'a rien', 'UC6itNlvarYpJrOvi-amn6fw', $$BRAVO et MERCI rare que j'écoute des vidéo si longue mais là j'ai pris un grand plaisir a regarder en vous souhaitons une bonne continuation on attend la suite de se genre de video$$, 1.0, 8, '2020-08-30T17:06:22Z', now(), now())
+
+
+
 1ci05SiZrDM
 3rY77MwvzhY
 
