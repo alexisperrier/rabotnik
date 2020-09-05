@@ -20,8 +20,8 @@ class Comment(Model):
                         text, reply_count, like_count,
                         published_at, created_at, updated_at)
                     values ('{d.comment_id}', '{d.video_id}', {d.discussion_id}, '{d.parent_id}',
-                        $$TextUtils.to_db({d.author_name})$$, '{d.author_channel_id}',
-                        $$TextUtils.to_db({d.text})$$, {d.reply_count}, {d.like_count},
+                        $${TextUtils.to_db(d.author_name)}$$, '{d.author_channel_id}',
+                        $${TextUtils.to_db(d.text)}$$, {d.reply_count}, {d.like_count},
                         '{d.published_at}', now(), now())
                         on conflict (comment_id) DO NOTHING
             '''
@@ -38,7 +38,7 @@ class Discussion(Model):
         try:
             sql = f'''
                     insert into discussions (video_id, total_results, results_per_page, error, created_at, updated_at)
-                    values ('{d.video_id}', {d.total_results}, {d.results_per_page}, $$TextUtils.to_db({d.error})$$, now(), now())
+                    values ('{d.video_id}', {d.total_results}, {d.results_per_page}, $${TextUtils.to_db(d.error)}$$, now(), now())
                     on conflict (video_id) DO NOTHING
                     RETURNING id;
             '''
@@ -86,8 +86,8 @@ class Channel(object):
         sql = f'''
             update channel set
                 created_at  = '{d.created_at}',
-                title       = $$TextUtils.to_db({d.title})$$,
-                description = $$TextUtils.to_db({d.description})$$,
+                title       = $${TextUtils.to_db(d.title)}$$,
+                description = $${TextUtils.to_db(d.description)}$$,
                 thumbnail   = '{d.thumbnail}',
                 show_related = '{d.show_related}',
                 custom_url  = '{d.custom_url}',
@@ -173,9 +173,9 @@ class IndexSearch(Model):
     def upsert(cls,d):
         sql = f'''
                 insert into augment as au (video_id, tsv_lemma, created_at)
-                values ( '{d.video_id}', to_tsvector('french', $$TextUtils.to_db({d.refined_lemma})$$), now() )
+                values ( '{d.video_id}', to_tsvector('french', $${TextUtils.to_db(d.refined_lemma)}$$), now() )
             on conflict (video_id) do update
-                set tsv_lemma = to_tsvector('french', $$TextUtils.to_db({d.refined_lemma})$$),
+                set tsv_lemma = to_tsvector('french', $${TextUtils.to_db(d.refined_lemma)}$$),
                     created_at = now()
                 where au.video_id = '{d.video_id}'
         '''
@@ -192,19 +192,19 @@ class Video(Model):
             update video set
                 published_at = '{d.published_at}',
                 channel_id = '{d.channel_id}',
-                title = $$TextUtils.to_db({d.title})$$,
-                summary = $$TextUtils.to_db({d.summary})$$,
+                title = $${TextUtils.to_db(d.title)}$$,
+                summary = $${TextUtils.to_db(d.summary)}$$,
                 thumbnail = '{d.thumbnail}',
                 category_id = {d.category_id},
                 duration = '{d.duration}',
                 caption = {d.caption},
                 privacy_status = '{d.privacy_status}',
-                tags = $$TextUtils.to_db({d.tags})$$,
+                tags = $${TextUtils.to_db(d.tags)}$$,
                 pubdate = '{d.pubdate}',
                 live_content = '{d.live_content}',
                 default_audio_language = '{d.default_audio_language}',
                 default_language = '{d.default_language}',
-                wikitopics = $$TextUtils.to_db({d.wikitopics})$$,
+                wikitopics = $${TextUtils.to_db(d.wikitopics)}$$,
                 seconds = {d.seconds},
                 retrieved_at = now()
             where video_id = '{d.video_id}'
@@ -227,7 +227,7 @@ class Video(Model):
             insert into video
                 (video_id,channel_id,title,summary,origin,published_at)
             values
-                ('{d.video_id}', '{d.channel_id}',$$TextUtils.to_db({d.title})$$,$$TextUtils.to_db({d.summary})$$,'{d.origin}','{d.published_at}')
+                ('{d.video_id}', '{d.channel_id}',$${TextUtils.to_db(d.title)}$$,$${TextUtils.to_db(d.summary)}$$,'{d.origin}','{d.published_at}')
             on conflict (video_id) DO NOTHING;
         '''
         job.execute(sql)

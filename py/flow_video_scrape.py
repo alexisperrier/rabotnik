@@ -138,7 +138,7 @@ class FlowVideoScrape(Flow):
                 insert into caption (video_id, status, caption, processed_at)
                 values ('{d.video_id}',
                     'unavailable',
-                    $$TextUtils.to_db({d.playability})$$,
+                    $${TextUtils.to_db(d.playability)}$$,
                     now()
                 )
                 ON CONFLICT (video_id)  DO NOTHING;
@@ -149,7 +149,7 @@ class FlowVideoScrape(Flow):
                 print(f"-- {d.video_id}: {d.playability}")
                 sql = f"update pipeline set status = 'unavailable' where video_id = '{d.video_id}'"
                 job.execute(sql)
-                sql = f"update video set footer = $$TextUtils.to_db({d.playability})$$ where video_id = '{d.video_id}'"
+                sql = f"update video set footer = $${TextUtils.to_db(d.playability)}$$ where video_id = '{d.video_id}'"
                 job.execute(sql)
 
 
@@ -215,7 +215,7 @@ class FlowVideoScrape(Flow):
                 insert into caption (video_id, status, caption, wordcount, processed_at, caption_url, caption_type)
                 values ('{cap.video_id}',
                     'acquired',
-                    $$TextUtils.to_db({' '.join(cap.text)})$$,
+                    $${TextUtils.to_db(' '.join(cap.text))}$$,
                     {len(' '.join(cap.text).split())},
                     now() ,
                     '{cap.caption_url}',
@@ -224,7 +224,7 @@ class FlowVideoScrape(Flow):
                 ON CONFLICT (video_id)  DO
                 UPDATE SET
                     status = 'acquired',
-                    caption = $$TextUtils.to_db({' '.join(cap.text)})$$,
+                    caption = $${TextUtils.to_db(' '.join(cap.text))}$$,
                     wordcount = {len(' '.join(cap.text).split())},
                     caption_url = '{cap.caption_url}',
                     caption_type = '{cap.caption_type}'
