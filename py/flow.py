@@ -33,7 +33,8 @@ class Flow(object):
         data = json.loads(self.results.result.content.decode('utf-8'))
 
         if 'items' in data.keys():
-            self.df = pd.io.json.json_normalize(data['items']).rename(columns = self.__class__.varnames_api2db)
+            # self.df = pd.io.json.json_normalize(data['items']).rename(columns = self.__class__.varnames_api2db)
+            self.df = pd.json_normalize(data['items']).rename(columns = self.__class__.varnames_api2db)
         else:
             self.df = pd.DataFrame(columns = [self.idname])
 

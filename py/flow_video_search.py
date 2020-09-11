@@ -48,7 +48,8 @@ class FlowVideoSearch(Flow):
 
             if results.result.ok:
                 data    = json.loads(results.result.content.decode('utf-8'))
-                df      = pd.io.json.json_normalize(data['items']).rename(columns = self.__class__.varnames_api2db)
+                # df      = pd.io.json.json_normalize(data['items']).rename(columns = self.__class__.varnames_api2db)
+                df      = pd.json_normalize(data['items']).rename(columns = self.__class__.varnames_api2db)
                 df['origin'] = f"search {keyword}"
                 df['keyword'] = keyword
                 self.df = pd.concat([self.df, df], sort=False)

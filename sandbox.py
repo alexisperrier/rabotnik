@@ -18,23 +18,20 @@ from pathlib import Path
 
 if __name__ == '__main__':
 
-    flowname  = 'video_stats'
+    flowname  = 'video_comments'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
     klass = globals()[classname]
     job.config['offset_factor'] = 0
 
-    params = {'flowtag' : False, 'mode' : 'local', 'counting' : True, 'max_items': 10}
+    params = {'flowtag' : False, 'mode' : 'local', 'counting' : True, 'max_items': 2}
     op = klass(**params)
     # op.get_items()
     # op.freeze()
     # op.query_api()
     # op.decode()
     # op.ingest()
+    # op.postop()
 
-
-    # op.query_api()
-    # op.ingest()
-    # op.ingest_collections()
 
     for operation in op.operations:
         start_time = datetime.datetime.now()

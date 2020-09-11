@@ -31,7 +31,7 @@ class FlowVideoComments(Flow):
         self.idname     = 'video_id'
         # self.max_items  = 1
         self.parts      = 'snippet,replies'
-        self.operations = ['get_items','freeze','query_api','decode', 'ingest', 'postop', 'bulk_release']
+        self.operations = ['get_items','freeze','query_api','decode', 'ingest_discussions', 'ingest_comments', 'postop', 'bulk_release']
 
 
     def code_sql(self):
@@ -39,14 +39,14 @@ class FlowVideoComments(Flow):
             comments only for videos in collections
         '''
         return '''
-            select v.video_id
-            from video v
-            join collection_items ci on ci.video_id = v.video_id
-            left join discussions d on d.video_id = v.video_id
-            left join flow as fl on (fl.video_id = v.video_id and fl.flowname = 'video_comments')
-            where d.id is null
+            select distinct ci.video_id, v.published_at
+            from collection_items ci
+            left join discussions d on d.video_id = ci.video_id
+            left join flow as fl on (fl.video_id = ci.video_id and fl.flowname = 'video_comments')
+            join video v on ci.video_id = v.video_id
+            where v.published_at < now() - interval '2 days'
             and fl.id is null
-            and v.published_at < now() - interval '2 days'
+            and d.id is null
             order by v.published_at asc
          '''
 
@@ -97,7 +97,8 @@ class FlowVideoComments(Flow):
             discussions.append(discussion)
             print(f"-- {discussion['video_id']} {discussion['total_results']} {discussion['error']}")
             if 'items' in data.keys():
-                df = pd.io.json.json_normalize(data['items']).rename(columns = self.__class__.varnames_api2db)
+                # df = pd.io.json.json_normalize(data['items']).rename(columns = self.__class__.varnames_api2db)
+                df = pd.json_normalize(data['items']).rename(columns = self.__class__.varnames_api2db)
                 if not df.empty:
                     replies = []
                     if 'replies.comments' in df.columns:
@@ -119,36 +120,35 @@ class FlowVideoComments(Flow):
                 self.comments.loc[self.comments['parent_id'].isna(), 'parent_id'] = ''
             else:
                 self.comments['parent_id'] = ''
+
             if 'author_name' in self.comments.columns:
                 self.comments.loc[self.comments['author_name'].isna(), 'author_name'] = ''
             else:
                 self.comments['author_name'] = ''
+
             if 'author_channel_id' in self.comments.columns:
                 self.comments.loc[self.comments['author_channel_id'].isna(), 'author_channel_id'] = ''
             else:
                 self.comments['author_channel_id'] = ''
+
             if 'reply_count' in self.comments.columns:
                 self.comments.loc[self.comments['reply_count'].isna(), 'reply_count'] = 0
                 self.comments['reply_count'] = self.comments['reply_count'].astype(int)
             else:
                 self.comments['reply_count'] = 0
-            # add is_channel
 
+            self.comments['discussion_id'] = ''
 
-
-    def ingest(self):
+    def ingest_discussions(self):
         print(f"== {self.discussions.shape[0]} discussions to insert")
         for i,d in self.discussions.iterrows():
             discussion_id = Discussion.create(d)
-            if not self.comments.empty:
-                if d.video_id in self.comments.video_id.unique():
-                    self.comments.loc[self.comments.video_id == d.video_id, 'discussion_id'] = discussion_id
+            cond_comments = self.comments.video_id == d.video_id
+            if (not self.comments[cond_comments].empty) and (discussion_id is not None):
+                self.comments.loc[cond_comments, 'discussion_id'] = discussion_id
 
-        # why do we have Nan as discussion_id?
-        if not self.comments.empty:
-            # force nan to 0 before casting as int
-            # self.comments[self.comments['discussion_id'].isna(), 'discussion_id'] = 0
-            self.comments['discussion_id'] = self.comments['discussion_id'].astype(int)
+    def ingest_comments(self):
+
         n_comments = 0
         print(f"== {self.comments.shape[0]} comments to insert")
         for i,d in self.comments.iterrows():
