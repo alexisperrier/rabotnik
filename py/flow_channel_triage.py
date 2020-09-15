@@ -59,7 +59,8 @@ class FlowChannelTriage(Flow):
                         lang = '--'
 
                 # estimate activity
-                entries = pd.io.json.json_normalize(result.entries)[FlowChannelTriage.varnames_feed2db.keys()]
+                # entries = pd.io.json.json_normalize(result.entries)[FlowChannelTriage.varnames_feed2db.keys()]
+                entries = pd.json_normalize(result.entries)[FlowChannelTriage.varnames_feed2db.keys()]
                 entries.rename(columns = FlowChannelTriage.varnames_feed2db, inplace = True)
                 entries['in_collection'] = channel_id in self.collections.channel_id.unique()
                 entries.sort_values(by = 'published_at', ascending = False, inplace = True)

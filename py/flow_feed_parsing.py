@@ -52,7 +52,8 @@ class FlowFeedParsing(Flow):
             result    = feedparser.parse( FlowFeedParsing.BASE_URL +  channel_id )
 
             if (result.status == 200) & (len(result.entries) > 0):
-                entries = pd.io.json.json_normalize(result.entries)[self.__class__.varnames_feed2db.keys()]
+                # entries = pd.io.json.json_normalize(result.entries)[self.__class__.varnames_feed2db.keys()]
+                entries = pd.json_normalize(result.entries)[self.__class__.varnames_feed2db.keys()]
                 entries.rename(columns = self.__class__.varnames_feed2db, inplace = True)
                 entries['origin']       = 'feed_parsing'
                 entries['source']       = 'rss'
