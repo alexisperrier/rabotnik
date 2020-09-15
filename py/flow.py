@@ -78,6 +78,8 @@ class Flow(object):
             print(f"{len(self.item_ids)} items")
         self.ok = len(self.item_ids) > 0
         self.reason = 'No more items'
+        print(f" {len(self.item_ids)} items")
+        print(self.item_ids)
 
     def get_sql(self):
         '''

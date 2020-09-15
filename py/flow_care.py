@@ -142,12 +142,12 @@ class FlowCare(Flow):
 
     def sql_complete_channels(self):
         return 'channel_id',f'''
-            select ch.channel_id
-            from channel ch
-            join video v on v.channel_id = ch.channel_id
+            select distinct ci.video_id
+            from collection_items ci
+            join video v on v.video_id = ci.video_id
+            join channel ch on v.channel_id = ch.channel_id
             where ch.title is null
-            and v.video_id in (select distinct video_id from collection_items)
-            order by ch.channel_id limit {self.max_items}
+            limit {self.max_items}
         '''
 
     def sql_video_stats(self):

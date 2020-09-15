@@ -34,6 +34,18 @@ class FlowChannelStats(Flow):
             order by ch.activity_score desc
         '''
 
+        # return '''
+        #     select cs.channel_id, cs.retrieved_at
+        #     from channel_stat cs
+        #     left join flow as fl on fl.channel_id = cs.channel_id and fl.flowname = 'channel_stats'
+        #     join collection_items ci on ci.channel_id = cs.channel_id
+        #     join pipeline p on p.channel_id = cs.channel_id
+        #     where cs.retrieved_at < now() - interval '1 day'
+        #     and p.status != 'unavailable'
+        #     order by cs.retrieved_at
+        #  '''
+
+
     def ingest(self):
         for i,d in self.df.iterrows():
             ChannelStat.upsert(d)
