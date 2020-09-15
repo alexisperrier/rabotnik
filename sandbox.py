@@ -1,8 +1,4 @@
 
-# NEXT
-# -- translate channel_stat into ChannelStat and instantiate class name
-# -- test on 50 channels
-
 import numpy as np
 import pandas as pd
 import os
@@ -73,6 +69,7 @@ if __name__ == '__main__':
         dfch = pd.read_sql(sql, job.db.conn)
 
         dfch = dfch.drop_duplicates(subset = ['channel_id']).reset_index(drop = True)
+        dfch.to_csv('./data/export/export_channels_20200915.csv', index = False)
 
         from tqdm import tqdm
         res = pd.DataFrame()
@@ -90,7 +87,16 @@ if __name__ == '__main__':
             rdf = pd.read_sql(sql , job.db.conn)
             res = pd.concat([res, rdf])
 
-        dflk = res
+        res.columns = ['likes', 'video_id', 'channel_id']
+        res.to_csv('./data/export/export_likes_raw_20200915.csv', index = False)
+        c = res[['likes','channel_id']].groupby(by = 'channel_id').count().reset_index()
+        c.columns = ['channel_id', 'likes_count']
+        s = res[['likes','channel_id']].groupby(by = 'channel_id').sum().reset_index()
+        s.columns = ['channel_id','likes_sum']
+        dflk = pd.merge(s,c, on = 'channel_id')
+        dflk['likes_avg'] = dflk.likes_sum / dflk.likes_count
+        dflk.columns = ['channel_id', 'likes_sum', 'likes_video_count', 'likes_avg']
+        dflk.to_csv('./data/export/export_likes_avg_20200915.csv', index = False)
 
         # sql = f'''
         #     select max(vs.like_count), vs.video_id,  ch.channel_id
@@ -123,12 +129,17 @@ if __name__ == '__main__':
             select distinct ci.channel_id from collection_items ci where ci.collection_id in (13,15,20)
         );'''
         dfreco = pd.read_sql(sql, job.db.conn)
+        dfreco.to_csv('./data/export/upstream_reco_export_20200915.csv', index = False)
+
         indg = dfreco[['channel_id', 'tgt_video_id']].groupby(by = 'channel_id').count().reset_index()
         indg.columns = ['channel_id', 'indegree']
         # indg.reset_index(drop = True, inplace = True)
+        indg.to_csv('./data/export/export_indegree_20200915.csv', index = False)
 
         data = pd.merge(dfch, indg, on = 'channel_id', how = 'outer')
+        data = pd.merge(data, dflk, on = 'channel_id', how = 'outer')
 
+        data.to_csv('./data/export/export_medialab_gj_sig_20200915.csv', index = False)
 
 
 
