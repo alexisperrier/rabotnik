@@ -31,11 +31,13 @@ if __name__ == '__main__':
     op.sql = '''
              select v.video_id
              from video v
+             join pipeline p on p.video_id = v.video_id
              join channel ch on ch.channel_id = v.channel_id
              join collection_items ci on ch.channel_id = ci.channel_id
              left join flow as fl on fl.video_id = v.video_id and fl.flowname = 'video_stats'
              left join video_stat vs on (vs.video_id = v.video_id)
-             where  fl.id is null
+             where p.status != 'unavailable'
+                and fl.id is null
                 and vs.id is null
                 and ci.collection_id in (15)
                 limit 50
