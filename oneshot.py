@@ -23,7 +23,7 @@ if __name__ == '__main__':
     flowname  = 'video_stats'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
     klass = globals()[classname]
-    job.config['offset_factor'] = 0
+    # job.config['offset_factor'] = 0
 
     params = {'flowtag' : True, 'mode' : 'local', 'counting' : False, 'max_items': 50}
     op = klass(**params)
@@ -37,7 +37,7 @@ if __name__ == '__main__':
              left join video_stat vs on (vs.video_id = v.video_id)
              where  fl.id is null
                 and vs.id is null
-                and ci.collection_id in (13)
+                and ci.collection_id in (15)
                 limit 50
     '''
 
