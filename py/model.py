@@ -155,10 +155,6 @@ class ChannelStat(Model):
     @classmethod
     def upsert(cls,d):
         if d.hidden_subscribers_count:
-            print('--'*20)
-            print("hidden_subscribers_count",d.hidden_subscribers_count)
-            print('--'*20)
-
             sql = f'''
                     insert into channel_stat as cs
                         (channel_id,  views, videos, retrieved_at)
