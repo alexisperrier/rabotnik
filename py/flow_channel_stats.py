@@ -6,6 +6,7 @@ class FlowChannelStats(Flow):
         'id': 'channel_id',
         'statistics.viewCount': "views",
         'statistics.subscriberCount': "subscribers",
+        'statistics.hiddenSubscriberCount': "hidden_subscribers_count",
         'statistics.videoCount': "videos"
     }
 
@@ -15,7 +16,7 @@ class FlowChannelStats(Flow):
         self.endpoint   = 'channels'
         self.idname     = 'channel_id'
         self.parts      = 'statistics'
-        self.fields     = 'items(id,statistics(viewCount,subscriberCount,videoCount))'
+        self.fields     = 'items(id,statistics(viewCount,subscriberCount,videoCount,hiddenSubscriberCount))'
 
     def tune_sql(self):
         month_ago = (datetime.datetime.now() - datetime.timedelta(days = 30)).strftime('%Y-%m-%d')

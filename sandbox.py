@@ -14,12 +14,12 @@ from pathlib import Path
 
 if __name__ == '__main__':
 
-    flowname  = 'complete_channels'
+    flowname  = 'channel_stats'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
     klass = globals()[classname]
     job.config['offset_factor'] = 0
 
-    params = {'flowtag' : True, 'mode' : 'local', 'counting' : True, 'max_items': 50}
+    params = {'flowtag' : True, 'mode' : 'local', 'counting' : False, 'max_items': 50}
     op = klass(**params)
     # op.get_items()
     # op.freeze()
@@ -29,18 +29,18 @@ if __name__ == '__main__':
     # op.postop()
 
 
-    # for operation in op.operations:
-    #     start_time = datetime.datetime.now()
-    #     print("== --",operation)
-    #     if op.ok:
-    #         getattr(op, operation)()
-    #     else:
-    #         print("nok", getattr(op, 'reason', ''), getattr(op, 'status_code', ''))
-    #         break;
-    #     delta_time = (datetime.datetime.now() - start_time).seconds
-    #     print("--",operation,f"execution time {delta_time}s")
-    #
-    # op.execution_time()
+    for operation in op.operations:
+        start_time = datetime.datetime.now()
+        print("== --",operation)
+        if op.ok:
+            getattr(op, operation)()
+        else:
+            print("nok", getattr(op, 'reason', ''), getattr(op, 'status_code', ''))
+            break;
+        delta_time = (datetime.datetime.now() - start_time).seconds
+        print("--",operation,f"execution time {delta_time}s")
+
+    op.execution_time()
 
 # ------------
     if False:
