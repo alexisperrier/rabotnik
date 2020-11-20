@@ -174,6 +174,10 @@ class FlowVideoComments(Flow):
         existing_channel_ids = pd.read_sql(sql, job.db.conn).channel_id.values
         channel_ids = [id for id in comments_channel_ids if id not in existing_channel_ids]
         print(f" {len(comments_channel_ids)} channels, {len(existing_channel_ids)} exists, {len(channel_ids)} unknown")
+        print('--'*20)
+        print(channel_ids)
+        print('--'*20)
+
         params = {'flowtag' : False, 'mode' : 'local', 'counting' : False, 'max_items': 50}
         opcs = FlowChannelStats(**params)
 
@@ -188,11 +192,11 @@ class FlowVideoComments(Flow):
             stats = pd.concat([stats, opcs.df])
             start += step
 
-        for c in ['views', 'subscribers', 'videos']:
+        for c in ['views',  'videos']:
             stats[c] = stats[c].astype(int)
 
-        stats['n'] = stats['views'] + stats['subscribers'] + stats['videos']
-        stats = stats[(stats.n > 10) & (stats.videos > 2)].reset_index()
+        stats['n'] = stats['views']  + stats['videos']
+        stats = stats[(stats.n > 30) & (stats.videos > 2)].reset_index()
         channel_count = 0
         print(f"-- Creating {stats.shape[0]} channels")
         for i,d in stats.iterrows():

@@ -14,12 +14,12 @@ from pathlib import Path
 
 if __name__ == '__main__':
 
-    flowname  = 'channel_stats'
+    flowname  = 'video_comments'
     classname = 'Flow'+ ''.join(word.title() for word in flowname.split('_'))
     klass = globals()[classname]
     job.config['offset_factor'] = 0
 
-    params = {'flowtag' : True, 'mode' : 'local', 'counting' : False, 'max_items': 50}
+    params = {'flowtag' : True, 'mode' : 'dbquery', 'counting' : False, 'max_items': 2}
     op = klass(**params)
     # op.get_items()
     # op.freeze()
