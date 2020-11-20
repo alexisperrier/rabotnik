@@ -39,8 +39,8 @@ if __name__ == '__main__':
              where p.status != 'unavailable'
                 and fl.id is null
                 and vs.id is null
-                and ci.collection_id in (15)
-                limit 50
+                and ci.collection_id in (20)
+                limit 50 offset 100
     '''
 
     # op.get_items()
