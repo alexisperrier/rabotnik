@@ -44,7 +44,7 @@ class FlowVideoComments(Flow):
             left join discussions d on d.video_id = ci.video_id
             left join flow as fl on (fl.video_id = ci.video_id and fl.flowname = 'video_comments')
             join video v on ci.video_id = v.video_id
-            where v.published_at < now() - interval '2 days'
+            where v.published_at < now() - interval '60 days'
             and fl.id is null
             and d.id is null
             order by v.published_at asc

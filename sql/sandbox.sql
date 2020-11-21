@@ -1,3 +1,39 @@
+
+-- # essai de trouver les commentaires par chaine via collection et non par video
+-- # tres long
+select distinct v.video_id, v.published_at 
+from video v
+-- join collection_items ci on ci.video_id = v.video_id
+-- left join discussions d on d.video_id = ci.video_id
+where v.channel_id in (
+    select channel_id
+    from collection_items
+    where collection_id in (13, 15, 20)
+);
+and v.published_at < now() - interval '1 months';
+
+and d.id is null;
+
+
+left join flow as fl on (fl.video_id = ci.video_id and fl.flowname = 'video_comments')
+
+select distinct v.video_id, v.published_at
+from video v
+join collection_items ci on ci.channel_id = v.channel_id
+left join discussions d on d.video_id = ci.video_id
+where ci.collection_id = 13
+and d.id is null;
+
+--and v.published_at < now() - interval '2 days'
+-- and fl.id is null
+-- left join flow as fl on (fl.video_id = ci.video_id and fl.flowname = 'video_comments')
+-- order by v.published_at asc;
+
+
+
+
+
+
 -- -----------------------------------------
  SELECT pid, age(clock_timestamp(), query_start), usename, query FROM pg_stat_activity
  WHERE query != '<IDLE>' AND query NOT ILIKE '%pg_stat_activity%' ORDER BY query_start desc;
