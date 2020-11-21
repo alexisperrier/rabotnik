@@ -1,18 +1,44 @@
 
--- # essai de trouver les commentaires par chaine via collection et non par video
--- # tres long
-select distinct v.video_id, v.published_at 
+select count(v.video_id)
 from video v
--- join collection_items ci on ci.video_id = v.video_id
--- left join discussions d on d.video_id = ci.video_id
+left join discussions d on d.video_id = v.video_id
 where v.channel_id in (
-    select channel_id
+    select distinct(channel_id)
     from collection_items
     where collection_id in (13, 15, 20)
-);
-and v.published_at < now() - interval '1 months';
-
+)
+and v.published_at > now() - interval '6 months'
+and v.published_at < now() - interval '7 days'
 and d.id is null;
+
+
+-- # essai de trouver les commentaires par chaine via collection et non par video
+-- # tres long
+select distinct v.video_id, v.published_at
+from video v
+left join discussions d on d.video_id = v.video_id
+where v.channel_id in (
+    select distinct(channel_id)
+    from collection_items
+    where collection_id in (13, 15, 20)
+)
+and v.published_at < now() - interval '1 week'
+and d.id is null
+order by v.published_at asc
+limit 200;
+
+UNION
+select distinct ci.video_id, v.published_at
+from collection_items ci
+left join discussions d on d.video_id = ci.video_id
+left join flow as fl on (fl.video_id = ci.video_id and fl.flowname = 'video_comments')
+join video v on ci.video_id = v.video_id
+where v.published_at < now() - interval '60 days'
+and fl.id is null
+and d.id is null
+order by v.published_at asc;
+
+
 
 
 left join flow as fl on (fl.video_id = ci.video_id and fl.flowname = 'video_comments')
