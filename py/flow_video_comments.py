@@ -162,9 +162,11 @@ class FlowVideoComments(Flow):
         print(f"== {self.discussions.shape[0]} discussions to insert")
         for i,d in self.discussions.iterrows():
             discussion_id = Discussion.create(d)
-            cond_comments = self.comments.video_id == d.video_id
-            if (not self.comments[cond_comments].empty) and (discussion_id is not None):
-                self.comments.loc[cond_comments, 'discussion_id'] = discussion_id
+            # some comments were found
+            if not self.comments.empty:
+                cond_comments = self.comments.video_id == d.video_id
+                if (not self.comments[cond_comments].empty) and (discussion_id is not None):
+                    self.comments.loc[cond_comments, 'discussion_id'] = discussion_id
 
     def ingest_comments(self):
 
