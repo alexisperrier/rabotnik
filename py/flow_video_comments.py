@@ -39,31 +39,34 @@ class FlowVideoComments(Flow):
             comments only for videos in collections
         '''
 
-        # (select distinct v.video_id, v.published_at
-        # from video v
-        # left join discussions d on d.video_id = v.video_id
-        # where v.channel_id in (
-        # select distinct(channel_id)
-        # from collection_items
-        # where collection_id in (13, 15, 20)
-        # )
-        # and v.published_at > now() - interval '6 months'
-        # and v.published_at < now() - interval '7 days'
-        # and d.id is null
-        # order by v.published_at asc
-        # limit 150)
-        # UNION
-        return '''
-                select distinct ci.video_id, v.published_at
-                from collection_items ci
-                left join discussions d on d.video_id = ci.video_id
-                left join flow as fl on (fl.video_id = ci.video_id and fl.flowname = 'video_comments')
-                join video v on ci.video_id = v.video_id
-                where v.published_at < now() - interval '7 days'
-                and v.published_at > now() - interval '6 months'
-                and fl.id is null
+        return '''(
+                select distinct v.video_id, v.published_at
+                from video v
+                left join discussions d on d.video_id = v.video_id
+                where v.channel_id in (
+                    select distinct(channel_id)
+                    from collection_items
+                    where collection_id in (13, 15, 20)
+                    order by channel_id
+                    limit 200 offset 0
+                )
+                and v.published_at > now() - interval '12 months'
+                and v.published_at < now() - interval '6 months'
                 and d.id is null
-                order by v.published_at asc
+            )
+            UNION
+                (
+                    select distinct ci.video_id, v.published_at
+                    from collection_items ci
+                    left join discussions d on d.video_id = ci.video_id
+                    left join flow as fl on (fl.video_id = ci.video_id and fl.flowname = 'video_comments')
+                    join video v on ci.video_id = v.video_id
+                    where v.published_at < now() - interval '7 days'
+                    and v.published_at > now() - interval '6 months'
+                    and fl.id is null
+                    and d.id is null
+                )
+                order by published_at asc
              '''
 
     def query_api(self):
