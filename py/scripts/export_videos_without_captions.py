@@ -11,10 +11,7 @@ import datetime, time
 from tqdm import tqdm
 from py import *
 import glob
-import subprocess
 
-# from google.cloud import storage
-# client = storage.Client()
 
 def capture_captions(video_id):
     start_ = 'https://www.youtube.com/api/timedtext'
@@ -97,7 +94,7 @@ if __name__ == '__main__':
         '''
         caption_path = './data/captions/'
         files = sorted([filename for filename in glob.glob(f"{caption_path}videos_no_caption_batch_*.csv")])
-        filename = files[8]
+        filename = files[9]
         print(f"== filename : {filename}")
         df = pd.read_csv(filename)
 
