@@ -1,20 +1,42 @@
--- liste of videos in collections without captions
+select distinct v.video_id, v.published_at
 
-select distinct v.video_id, v.channel_id
+select count(*)
 from video v
--- left join caption cap on cap.video_id = v.video_id
-join caption cap on cap.video_id = v.video_id
+left join discussions d on d.video_id = v.video_id
+where v.channel_id in (
+    select distinct(channel_id)
+    from collection_items
+    where collection_id in (13, 15, 20,24)
+    order by channel_id
+    limit 100 offset 100
+)
+and v.published_at > now() - interval '12 months'
+and d.id is null;
+
+--and v.published_at < now() - interval '6 months'
+
+
+-- liste of videos in collections without captions
+0-500:      17k
+500-500:    47967
+1000-1500:   43032
+1500-2000:   30060
+
+select distinct v.channel_id, v.video_id
+from video v
+left join caption cap on cap.video_id = v.video_id
 where v.channel_id in (
     select distinct(channel_id)
     from collection_items
     where collection_id in (13, 15, 20)
     order by channel_id
-    limit 50 offset 0
+    limit 500 offset 1500
 )
-and cap.is is null
+and cap.id is null
 order by v.channel_id, v.video_id;
 
-
+-- and cap.status = 'unavailable'
+-- join caption cap on cap.video_id = v.video_id
 
 
 select distinct v.video_id, v.published_at

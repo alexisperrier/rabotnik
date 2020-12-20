@@ -19,15 +19,20 @@ if __name__ == '__main__':
     klass = globals()[classname]
     job.config['offset_factor'] = 0
 
-    params = {'flowtag' : False, 'mode' : 'local', 'counting' : True, 'max_items': 5}
+    params = {'flowtag' : False, 'mode' : 'local', 'counting' : True, 'max_items': 50}
     op = klass(**params)
     op.get_items()
-    # # op.freeze()
-    # # op.query_api()
-    # # op.decode()
-    # # op.ingest()
-    # # op.postop()
-    #
+    print(op.sql)
+    op.update_query()
+    print('--',op.data.shape)
+    # op.freeze()
+    # op.query_api()
+    # op.decode()
+    # op.ingest_discussions()
+    # op.ingest_comments()
+    # op.postop()
+    # op.bulk_release()
+
     #
     # for operation in op.operations:
     #     start_time = datetime.datetime.now()
