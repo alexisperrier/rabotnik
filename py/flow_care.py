@@ -1,3 +1,12 @@
+'''
+- Counts number of items (videos, channels) need processing for a given flow.
+- Enforces distinction between French and Foreign channels
+- sets video
+    - pubdate (string '2020-01-01')
+    - lang
+    - Foreign / French status
+
+'''
 from .flow import *
 
 class FlowCare(Flow):
@@ -12,23 +21,19 @@ class FlowCare(Flow):
         self.care_tasks = ['enforce_border','enforce_lang','set_pubdate','check_pubdate','flow_cleanup','helm_cleanup','cold_videos']
         self.max_items = 16
 
-        # self.quality_tasks = ['complete_videos','complete_channels','video_scrape','video_stats']
         self.quality_tasks = ['complete_videos','video_scrape','video_stats']
 
     def execution_time(self):   super().execution_time()
     def code_sql(self): pass
 
     def care(self):
-        print("--" * 20)
-        print(" Care" )
-        print("--" * 20)
         for task in self.care_tasks:
             job.execute(  getattr(self, f"sql_{task}")() )
             print(f"- {task}: \t{job.db.cur.rowcount} rows")
 
     def sql_enforce_border(self):
         '''
-            All channels with a country != FR, Null, '' are inserted into border
+            All channels with a country != FR, Null, '' are set as Foreign
         '''
         return '''
             update pipeline p
@@ -41,7 +46,10 @@ class FlowCare(Flow):
 
     def sql_enforce_lang(self):
         '''
-            All channels with a country  Null, '' and lang !=fr and lang_conf > 02 are inserted into border
+            All channels with
+            - country  Null, ''
+            - lang !=fr and lang_conf > 02 (FastText lang detector)
+            are set as Foreign
         '''
         return '''
             update pipeline p
@@ -56,7 +64,7 @@ class FlowCare(Flow):
 
     def sql_set_pubdate(self):
         '''
-            This query sets the video.pubdate
+            This query sets the video.pubdate (string '2020-01-01') from timestamp published_at
         '''
         return '''
             update video
@@ -92,13 +100,13 @@ class FlowCare(Flow):
 
     def sql_helm_cleanup(self):
         '''
-            only 48h of helm data is kept
+            only 48h of dashboard (helm) data is kept
         '''
         return "delete from helm where created_at < now() - interval '48 hours'"
 
     def sql_cold_videos(self):
         '''
-        Videos that are older than 6 months are set to cold status
+            Videos that are older than 6 months are set to cold status
         '''
         return '''
             update pipeline set status = 'cold'

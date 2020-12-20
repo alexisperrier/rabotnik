@@ -1,5 +1,5 @@
 '''
-
+oneshot script for one shot operations
 Works like sandbox.py
 - instantiate flow
 - define op.sql before calling op.get_items()

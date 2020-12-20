@@ -40,7 +40,6 @@ class DbUtils(object):
             cur  = conn.cursor()
 
         except BaseException as e:
-            # TODO Alert
             error_message = f"Unable to connect \n{str(e)}"
             sys.exit(error_message)
 

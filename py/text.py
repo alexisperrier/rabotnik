@@ -1,5 +1,7 @@
 '''
     TextUtils: text related methods
+    handles: stopwords, regex clean up, language detection, lemmatization (spacy), tokenization
+    some methods are not currently used
 '''
 import re
 import emoji
@@ -10,6 +12,9 @@ import fasttext
 import numpy as np
 
 class LangDetector(object):
+    '''
+    Uses FasText model to determine language of given text
+    '''
 
     def __init__(self):
         self.model = fasttext.load_model( os.path.join(job.project_root, 'model/lid.176.bin'));
@@ -61,7 +66,6 @@ class TextUtils(object):
 
     @classmethod
     def lemmatize(cls,spacy_doc):
-        # doc = nlp(text)
         lemmas = [token.lemma_  for token in spacy_doc]
         return ' '.join( lemmas )
 

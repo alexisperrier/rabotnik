@@ -1,4 +1,5 @@
 '''
+Gets channel data from Youtube API
 see https://developers.google.com/youtube/v3/docs/channels#resource
 '''
 from .flow import *
@@ -47,16 +48,6 @@ class FlowCompleteChannels(Flow):
                 and p.lang is not null
             order by ch.id asc
          '''
-         # return '''
-         #    select ch.channel_id, ch.retrieved_at
-         #    from channel ch
-         #    left join flow as fl on fl.channel_id = ch.channel_id and fl.flowname = 'complete_channels'
-         #    join pipeline p on p.channel_id = ch.channel_id
-         #    join collection_items ci on ci.channel_id = ch.channel_id
-         #    where ch.retrieved_at < now() - interval '1 day'
-         #    and p.status != 'unavailable'
-         #    order by ch.id asc
-         # '''
 
     def decode(self):
         super().decode()

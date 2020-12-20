@@ -1,3 +1,14 @@
+'''
+Contain classes for most major database tables
+Each class offers methods to insert, update, upsert ...
+
+For instance the class Channel has the following methods:
+
+- create: inserts a new channel in table channel
+- update: updates data for a given channel_id, data is from API
+- update_from_feed: updates data for a given channel_id, data is from RSS feed
+
+'''
 from .text import *
 from .job import *
 import datetime
@@ -7,6 +18,7 @@ from xml.etree import ElementTree
 import html
 
 class Model(object):
+    # TODO rm, not used
     def __init__(self):
         pass
 
@@ -123,10 +135,6 @@ class Channel(object):
         '''
         job.execute(sql)
         return job.db.cur.rowcount
-
-# -----------------------------------------------------------------------
-#  to be reviewed
-# -----------------------------------------------------------------------
 
 class ChannelTopic(Model):
 

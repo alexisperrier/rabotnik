@@ -1,5 +1,8 @@
 '''
 Feed parsing
+- newly published videos
+- channel information
+- channel activity score
 '''
 from .flow import *
 from .text import *

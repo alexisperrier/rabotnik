@@ -1,3 +1,6 @@
+'''
+Gets video comments via YOutube API V3
+'''
 from .flow import *
 from .flow_channel_stats import *
 import datetime

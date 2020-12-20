@@ -2,6 +2,12 @@ import requests
 import datetime
 
 class APIkey(object):
+    '''
+        Handles Youtube API keys:
+        - init: gets an active from the database
+        - count: how many active keys
+        - standby: puts a key in standby mode
+    '''
 
     @classmethod
     def count(self):
@@ -11,6 +17,9 @@ class APIkey(object):
         return n
 
     def __init__(self,job):
+        '''
+        Youtube API keys are stored in the database
+        '''
         sql = '''
             select apikey from apikeys where status = 'active'
             order by random()
@@ -34,10 +43,14 @@ class APIkey(object):
 
 class APIrequest(object):
     '''
-        Execute request to the API
+        Execute requests to the API
     '''
 
     def __init__(self,flow,job) -> None:
+        '''
+        - builds params with info from the instanciated fLow
+        - sets API endpoint URL
+        '''
         self.base_url   = 'https://www.googleapis.com/youtube/v3/'
         self.url        = self.base_url + flow.endpoint
 
@@ -70,7 +83,6 @@ class APIrequest(object):
                 'order': 'relevance'
             }
         else:
-
             self.request_params = {
                 'key':      job.apikey,
                 'id':       ','.join(flow.item_ids),
