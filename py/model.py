@@ -396,30 +396,3 @@ class Caption(object):
 
         captions = pd.DataFrame(captions)
         return captions
-
-
-# -------
-# class Timer(Model):
-#     @classmethod
-#     def update_channel_from_feed(cls, d):
-#         error = '' if d.ok else ' '.join([str(d.status_code), str(d.empty), str(d.reason)])
-#         sql = f''' update timer set
-#                     counter = counter +1,
-#                     error = $${error}$$,
-#                     rss_last_parsing = NOW() ,
-#                     rss_next_parsing = NOW() + interval '{d.frequency}'
-#                 where channel_id = '{d.channel_id}'
-#         '''
-#         job.execute(sql)
-#         return job.db.cur.rowcount
-#
-#
-#     @classmethod
-#     def create(cls, **kwargs):
-#         sql = f'''
-#                 insert into timer ({kwargs['idname']}, rss_next_parsing)
-#                 values ('{kwargs['item_id']}',NOW())
-#                 on conflict ({kwargs['idname']}) DO NOTHING;
-#             '''
-#         job.execute(sql)
-#         return job.db.cur.rowcount
