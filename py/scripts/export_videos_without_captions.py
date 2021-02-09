@@ -94,7 +94,7 @@ if __name__ == '__main__':
         '''
         caption_path = './data/captions/'
         files = sorted([filename for filename in glob.glob(f"{caption_path}videos_no_caption_batch_*.csv")])
-        filename = files[9]
+        filename = files[15]
         print(f"== filename : {filename}")
         df = pd.read_csv(filename)
 
