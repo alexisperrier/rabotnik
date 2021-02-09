@@ -52,7 +52,7 @@ class FlowVideoComments(Flow):
                         where collection_id in (13, 15, 20,24)
                         and channel_id is not null
                         order by channel_id
-                        limit 200 offset 600
+                        limit 200 offset 1800
                     )
                     and v.published_at < now() - interval '7 days'
                     and v.published_at > now() - interval '12 months'
