@@ -19,9 +19,9 @@ if __name__ == '__main__':
     klass = globals()[classname]
     job.config['offset_factor'] = 0
 
-    params = {'flowtag' : False, 'mode' : 'local', 'counting' : True, 'max_items': 5}
-    op = klass(**params)
-    op.get_items()
+    #params = {'flowtag' : False, 'mode' : 'local', 'counting' : True, 'max_items': 5}
+    #op = klass(**params)
+    # op.get_items()
     # # op.freeze()
     # # op.query_api()
     # # op.decode()

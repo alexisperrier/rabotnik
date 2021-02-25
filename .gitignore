@@ -8,6 +8,7 @@ __pycache__/
 log/*.log
 
 config/config_rabotnik.json
+config/config_rabotnik_local.json
 
 notes/
 data/
