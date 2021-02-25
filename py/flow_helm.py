@@ -1,3 +1,9 @@
+'''
+Monitoring task
+- Calculates number of items that need processing
+- stores to db helm table
+- data is consumed in kansatsu /helm dashboard
+'''
 from .flow import *
 from .flow_video_stats import *
 from .flow_channel_stats import *
@@ -9,7 +15,6 @@ from .flow_feed_parsing import *
 from .flow_index_search import *
 from .flow_video_scrape import *
 from .flow_video_comments import *
-# from .flow_video_search import *
 
 class FlowHelm(Flow):
     def __init__(self,**kwargs):

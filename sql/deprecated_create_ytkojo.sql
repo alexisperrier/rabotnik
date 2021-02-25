@@ -1,3 +1,6 @@
+-- Deprecated
+-- moved on to rails schema database creation, update
+
 -- psql create database ytkojo_proddb;
 -- psql -U postgres ytkojo_proddb  -f sql/create_ytkojo.sql
 

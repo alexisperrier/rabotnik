@@ -13,34 +13,41 @@ class DbUtils(object):
 
     def __init__(self, config):
         self.pwd = None
-        if os.path.exists(f"{config['db']['credentials_path']}"):
-            with open(f"{config['db']['credentials_path']}", 'r') as f:
-                self.pwd = f.read().replace('\n','')
-        elif config['db']['envar_credentials'] in os.environ.keys():
-            self.pwd = os.environ[config['db']['envar_credentials']]
-
-        if self.pwd:
+        # case: localhost and no pdw on the db
+        if (config['db']['host'] == 'localhost') &  ( 'credentials_path' not in  config['db'].keys()   ) &  ( 'envar_credentials' not in  config['db'].keys()   ):
             self.conn, self.cur = self.connect(config)
+        # else verify get pwd and only connect if pwd
         else:
-            self.conn, self.cur = None, None
+            if os.path.exists(f"{config['db']['credentials_path']}"):
+                with open(f"{config['db']['credentials_path']}", 'r') as f:
+                    self.pwd = f.read().replace('\n','')
+            # read from environment variable
+            elif config['db']['envar_credentials'] in os.environ.keys():
+                self.pwd = os.environ[config['db']['envar_credentials']]
+
+            if self.pwd:
+                self.conn, self.cur = self.connect(config)
+            else:
+                self.conn, self.cur = None, None
 
     def connect(self,config):
         '''
             Connects to the database
         '''
         try:
-            dns = f'''
-                dbname={config['db']['dbname']}
-                user={config['db']['user']}
-                host={config['db']['host']}
-                password={self.pwd}
-                port={config['db']['port']}
-            '''
+            dns = [f"dbname={config['db']['dbname']}",f"user={config['db']['user']}",f"host={config['db']['host']}"]
+
+            if self.pwd:
+                dns.append(f"password={self.pwd}")
+            if ("port" in config['db'].keys()):
+                dns.append(f"port={config['db']['port']}")
+
+            dns = ' '.join(dns)
+
             conn = psycopg2.connect(dns)
             cur  = conn.cursor()
 
         except BaseException as e:
-            # TODO Alert
             error_message = f"Unable to connect \n{str(e)}"
             sys.exit(error_message)
 

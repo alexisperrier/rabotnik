@@ -1,3 +1,6 @@
+'''
+Gets views for a video via Youtube API V3
+'''
 from .flow import *
 import datetime
 
@@ -61,7 +64,6 @@ class FlowVideoStats(Flow):
         print(f"== {self.df.shape} to insert")
         for i,d in self.df.iterrows():
             VideoStat.create(d)
-            # self.release(d.video_id)
 
 
 

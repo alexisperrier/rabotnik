@@ -1,3 +1,15 @@
+'''
+A Job instance holds
+- database connection object
+- API key
+- config (see config_rabotnik_sample.json )
+- localized paths with respect to project root
+
+And offers
+- job.reconnect(): reconnects to the db
+- job.execute(sql_query): wrapper around db.execute
+'''
+
 import os, json
 import distutils.util
 from .db import *

@@ -1,3 +1,9 @@
+'''
+Extract search terms from video title and description
+Stored in database augment table as ts_vectors
+Consumed by search engine in Kansatsu
+'''
+
 from .flow import *
 import datetime
 from .text import *

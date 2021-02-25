@@ -1,10 +1,12 @@
+'''
+Simple Topic modeling via scikit LDA.
+'''
 from .flow import *
 import datetime
 from .text import *
 import spacy
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
-# import numpy as np
 
 class FlowChannelTopics(Flow):
 
@@ -96,7 +98,6 @@ class FlowChannelTopics(Flow):
     def ingest(self):
         for i,d in self.df.iterrows():
             ChannelTopic.upsert(d)
-            # self.release(d.channel_id)
-
+            
 
 # -----------------

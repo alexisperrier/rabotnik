@@ -5,6 +5,9 @@ import numpy as np
 import datetime
 
 class Flow(object):
+    '''
+    Base class for all flows with default methods
+    '''
 
     def __init__(self, **kwargs):
         self.start_time = datetime.datetime.now()
@@ -21,9 +24,13 @@ class Flow(object):
         self.get_sql()
         self.tune_sql()
 
+    # implements local query def in flows. Used to bypass, update and test query stored in db
     def code_sql(self): pass
+    # insert results into db
     def ingest(self):   pass
+    # any secondary task
     def postop(self):   pass
+    # builds sql query when parameters
     def tune_sql(self): pass
 
     def decode(self):
@@ -43,6 +50,10 @@ class Flow(object):
         print("--"* 5 + " \t execution time {}m {}s".format(  int(self.delta_time / 60), str(self.delta_time -  int(self.delta_time / 60)*60).zfill(2) ))
 
     def freeze(self):
+        '''
+        freezes videos and channels for a certain task (flow)
+        to make them unavailable for processing for the same task from other instances
+        '''
         if self.flowtag:
             print("-- start freeze")
             for item_id in self.item_ids:
@@ -56,7 +67,9 @@ class Flow(object):
 
     def get_items(self):
         '''
-            data is a dataframe with potentially multiple columns
+            runs the sql query to find videos and channels that need to be processed
+
+            'data' is a dataframe with potentially multiple columns
             number of samples may not be bounded by self.max_items
             whereas item_ids is the list of video_ids or channel_ids
             that are processed or sent to the API
@@ -119,6 +132,9 @@ class Flow(object):
             # self.release(item_id)
 
     def query_api(self):
+        '''
+        Queries the Youtube API V3
+        '''
         self.results     = APIrequest(self,job).get()
         self.status_code = self.results.result.status_code
         self.ok          = self.results.result.ok
@@ -126,7 +142,7 @@ class Flow(object):
 
     def release(self, item_id):
         '''
-            rm the item_id from the flow table
+            rm single item_ids from the flow table. see freeze()
         '''
         sql = f'''
             delete from flow where {self.idname} = '{item_id}' and flowname = '{self.flowname}'
@@ -135,7 +151,7 @@ class Flow(object):
 
     def bulk_release(self):
         '''
-            rm the item_id from the flow table
+            rm all the item_id from the flow table for a given flow
         '''
         if  hasattr(self, 'forced'):
             sql = f'''
@@ -150,7 +166,7 @@ class Flow(object):
 
     def update_query(self):
         '''
-            replaces the sql in the 'query' table by the sql defined in the code_sql
+            updates the query in the db by the query defined in code_sql()
         '''
         self.mode = 'script'
         self.get_sql()

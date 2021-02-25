@@ -1,3 +1,14 @@
+'''
+Contain classes for most major database tables
+Each class offers methods to insert, update, upsert ...
+
+For instance the class Channel has the following methods:
+
+- create: inserts a new channel in table channel
+- update: updates data for a given channel_id, data is from API
+- update_from_feed: updates data for a given channel_id, data is from RSS feed
+
+'''
 from .text import *
 from .job import *
 import datetime
@@ -7,6 +18,7 @@ from xml.etree import ElementTree
 import html
 
 class Model(object):
+    # TODO rm, not used
     def __init__(self):
         pass
 
@@ -123,10 +135,6 @@ class Channel(object):
         '''
         job.execute(sql)
         return job.db.cur.rowcount
-
-# -----------------------------------------------------------------------
-#  to be reviewed
-# -----------------------------------------------------------------------
 
 class ChannelTopic(Model):
 
@@ -388,30 +396,3 @@ class Caption(object):
 
         captions = pd.DataFrame(captions)
         return captions
-
-
-# -------
-# class Timer(Model):
-#     @classmethod
-#     def update_channel_from_feed(cls, d):
-#         error = '' if d.ok else ' '.join([str(d.status_code), str(d.empty), str(d.reason)])
-#         sql = f''' update timer set
-#                     counter = counter +1,
-#                     error = $${error}$$,
-#                     rss_last_parsing = NOW() ,
-#                     rss_next_parsing = NOW() + interval '{d.frequency}'
-#                 where channel_id = '{d.channel_id}'
-#         '''
-#         job.execute(sql)
-#         return job.db.cur.rowcount
-#
-#
-#     @classmethod
-#     def create(cls, **kwargs):
-#         sql = f'''
-#                 insert into timer ({kwargs['idname']}, rss_next_parsing)
-#                 values ('{kwargs['item_id']}',NOW())
-#                 on conflict ({kwargs['idname']}) DO NOTHING;
-#             '''
-#         job.execute(sql)
-#         return job.db.cur.rowcount

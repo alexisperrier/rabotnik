@@ -1,5 +1,7 @@
 '''
-Page scraping
+Video Page scraping
+- captions
+- recommended videos
 '''
 from .flow import *
 from .text import *

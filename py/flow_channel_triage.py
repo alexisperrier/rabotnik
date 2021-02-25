@@ -1,5 +1,9 @@
 '''
 Channel Triage
+- Reads the RSS feed
+- Detects channel language based on channel title and videos title
+- Calculates channel activity score
+- Sets next feed parsing datetime
 '''
 from .flow import *
 from .text import *
@@ -59,7 +63,6 @@ class FlowChannelTriage(Flow):
                         lang = '--'
 
                 # estimate activity
-                # entries = pd.io.json.json_normalize(result.entries)[FlowChannelTriage.varnames_feed2db.keys()]
                 entries = pd.json_normalize(result.entries)[FlowChannelTriage.varnames_feed2db.keys()]
                 entries.rename(columns = FlowChannelTriage.varnames_feed2db, inplace = True)
                 entries['in_collection'] = channel_id in self.collections.channel_id.unique()

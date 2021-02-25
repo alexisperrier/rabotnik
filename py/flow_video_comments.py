@@ -1,3 +1,6 @@
+'''
+Gets video comments via YOutube API V3
+'''
 from .flow import *
 from .flow_channel_stats import *
 import datetime
@@ -29,7 +32,6 @@ class FlowVideoComments(Flow):
         super().__init__(**kwargs)
         self.endpoint   = 'commentThreads'
         self.idname     = 'video_id'
-        # self.max_items  = 1
         self.parts      = 'snippet,replies'
         self.operations = ['get_items','freeze','query_api','decode', 'ingest_discussions', 'ingest_comments', 'postop', 'bulk_release']
 
@@ -38,48 +40,57 @@ class FlowVideoComments(Flow):
         '''
             comments only for videos in collections
         '''
-
-        return '''
-                select distinct ci.video_id, v.published_at
-                    from collection_items ci
-                    left join discussions d on d.video_id = ci.video_id
-                    left join flow as fl on (fl.video_id = ci.video_id and fl.flowname = 'video_comments')
-                    join video v on ci.video_id = v.video_id
-                    where v.published_at < now() - interval '7 days'
-                    and v.published_at > now() - interval '6 months'
-                    and fl.id is null
+        if True:
+            return '''
+                    select distinct v.video_id, v.published_at
+                    from video v
+                    left join discussions d on d.video_id = v.video_id
+                    left join flow as fl on (fl.video_id = v.video_id and fl.flowname = 'video_comments')
+                    where v.channel_id in (
+                        select channel_id
+                        from collection_items
+                        where collection_id in (13, 15, 20,24)
+                        and channel_id is not null
+                        order by channel_id
+                        limit 200 offset 1800
+                    )
+                    and v.published_at < now() - interval '7 days'
+                    and v.published_at > now() - interval '12 months'
                     and d.id is null
-                order by published_at asc
-             '''
-        # return '''(
-        #         select distinct v.video_id, v.published_at
-        #         from video v
-        #         left join discussions d on d.video_id = v.video_id
-        #         where v.channel_id in (
-        #             select distinct(channel_id)
-        #             from collection_items
-        #             where collection_id in (13, 15, 20)
-        #             order by channel_id
-        #             limit 100 offset 1650
-        #         )
-        #         and v.published_at > now() - interval '12 months'
-        #         and v.published_at < now() - interval '6 months'
-        #         and d.id is null
-        #     )
-        #     UNION
-        #         (
-        #             select distinct ci.video_id, v.published_at
-        #             from collection_items ci
-        #             left join discussions d on d.video_id = ci.video_id
-        #             left join flow as fl on (fl.video_id = ci.video_id and fl.flowname = 'video_comments')
-        #             join video v on ci.video_id = v.video_id
-        #             where v.published_at < now() - interval '7 days'
-        #             and v.published_at > now() - interval '6 months'
-        #             and fl.id is null
-        #             and d.id is null
-        #         )
-        #         order by published_at asc
-        #      '''
+                    and fl.id is null
+                    order by published_at asc
+                    '''
+        if False:
+
+            return '''(
+                    select distinct v.video_id, v.published_at
+                    from video v
+                    left join discussions d on d.video_id = v.video_id
+                    where v.channel_id in (
+                        select distinct(channel_id)
+                        from collection_items
+                        where collection_id in (13, 15, 20)
+                        order by channel_id
+                        limit 100 offset 1650
+                    )
+                    and v.published_at > now() - interval '12 months'
+                    and v.published_at < now() - interval '6 months'
+                    and d.id is null
+                )
+                UNION
+                    (
+                        select distinct ci.video_id, v.published_at
+                        from collection_items ci
+                        left join discussions d on d.video_id = ci.video_id
+                        left join flow as fl on (fl.video_id = ci.video_id and fl.flowname = 'video_comments')
+                        join video v on ci.video_id = v.video_id
+                        where v.published_at < now() - interval '7 days'
+                        and v.published_at > now() - interval '6 months'
+                        and fl.id is null
+                        and d.id is null
+                    )
+                    order by published_at asc
+                 '''
 
     def query_api(self):
         self.content = []

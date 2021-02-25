@@ -1,7 +1,7 @@
-
-# NEXT
-# -- translate channel_stat into ChannelStat and instantiate class name
-# -- test on 50 channels
+'''
+Main
+- runs methods (operations) for a given task (Flow)
+'''
 
 import numpy as np
 import pandas as pd

@@ -11,10 +11,37 @@ import datetime, time
 from tqdm import tqdm
 from py import *
 import glob
-import subprocess
 
-from google.cloud import storage
-client = storage.Client()
+
+def capture_captions(video_id):
+    start_ = 'https://www.youtube.com/api/timedtext'
+    end_ = '",'
+
+    HTML_TAG_REGEX = re.compile(r'<[^>]*>', re.IGNORECASE)
+
+    http_client = requests.Session()
+    text        = http_client.get('https://www.youtube.com/watch?v=' + video_id).text.replace('\\u0026', '&').replace('\\', '')
+    m = re.findall('{}(.+?){}'.format(start_, end_), text)
+    captions = []
+
+    for u in m:
+        url = start_+u
+        if Caption.get_lang(start_+url) == 'fr':
+            result = requests.Session().get(url)
+            captions_text = result.text
+            if (len(captions_text) > 0) and (result.status_code == 200):
+                captext = [ re.sub(HTML_TAG_REGEX, '', html.unescape(xml_element.text)).replace("\n",' ').replace("\'","'")
+                            for xml_element in ElementTree.fromstring(captions_text)
+                            if xml_element.text is not None ]
+                captions.append({
+                    'video_id': video_id,
+                    'len_': len(result.text),
+                    'text': ' '.join(captext)
+                })
+    if len(captions) > 0:
+        return captions[0]['text']
+    else:
+        return None
 
 
 if __name__ == '__main__':
@@ -66,14 +93,16 @@ if __name__ == '__main__':
             - filename: {channel_id}_{video_id}_{timestamp}.
         '''
         caption_path = './data/captions/'
-        files = sorted([filename for filename in glob.glob(f"{caption_path}extended_wizzdeo_videos_no_caption_batch_*.csv")])
-        filename = files[0]
+        files = sorted([filename for filename in glob.glob(f"{caption_path}videos_no_caption_batch_*.csv")])
+        filename = files[15]
         print(f"== filename : {filename}")
         df = pd.read_csv(filename)
+
         df.fillna(value = {'found': 0}, inplace = True)
         df.fillna('', inplace = True)
         df['found'] = df.found.astype(int)
         # raise "stop"
+        caption_count = 0
         channel_count = 0
         channel_ids = df.channel_id.unique()
         for channel_id in channel_ids:
@@ -92,30 +121,47 @@ if __name__ == '__main__':
             print(f"- {len(video_ids)} videos")
             print("---"*20)
             k = 0
-            for video_id in video_ids:
+            for video_id in tqdm(video_ids):
                 cond = (df.channel_id == channel_id) & (df.video_id == video_id)
                 k +=1
                 if (video_id[0] != '-') & (without < 20):
-                    time.sleep(np.random.randint( 2))
+                    time.sleep(np.random.randint( 4))
                     df.loc[cond,  'process'] = 'started ytdl'
-                    try:
-                        print(f"[{k}/{len(video_ids)}]  wo:{without} \t {video_id}", end="\t")
-                        cmd = f'''youtube-dl --write-auto-sub --sub-lang fr \
-                                    --sub-format "srt/ass/best"  \
-                                    --skip-download --quiet --no-warnings  \
-                                    -o {local_output_path}/'%(id)s.%(ext)s' --ignore-errors \
-                                    {video_id}
-                                '''
-                        os.system(cmd)
-                    except:
-                        df.loc[cond,'error'] = f"cmd failed {cmd}"
-                        print(f"***cmd failed***\n{cmd}")
-                        df.to_csv(filename, index = False, quoting = csv.QUOTE_ALL)
+                    if True:
+                        try:
+                            captext = capture_captions(video_id)
+                            if captext is not None:
+                                cap_file= f"{local_output_path}/{video_id}.txt"
+                                with open(cap_file, 'w') as f:
+                                    f.write(captext)
+                                caption_count +=1
+                                # print(f"new cap for {video_id}")
+                        except:
+                            df.loc[cond,'error'] = f"manual scraping failed"
+                            print(f"***manual scraping failed***")
+                            df.to_csv(filename, index = False, quoting = csv.QUOTE_ALL)
+
+
+
+                    if False:
+                        try:
+                            print(f"[{k}/{len(video_ids)}]  wo:{without} \t {video_id}", end="\t")
+                            cmd = f'''youtube-dl --write-auto-sub --sub-lang fr \
+                                        --sub-format "srt/ass/best"  \
+                                        --skip-download --quiet --no-warnings  \
+                                        -o {local_output_path}/'%(id)s.%(ext)s' --ignore-errors \
+                                        {video_id}
+                                    '''
+                            os.system(cmd)
+                        except:
+                            df.loc[cond,'error'] = f"cmd failed {cmd}"
+                            print(f"***cmd failed***\n{cmd}")
+                            df.to_csv(filename, index = False, quoting = csv.QUOTE_ALL)
 
                     if glob.glob(f"{local_output_path}/{video_id}.*"):
                         without = 0
                         cf = [f.split('/')[-1] for f in   glob.glob(f"{local_output_path}/{video_id}.*")]
-                        print(f"found: {cf}")
+                        # print(f"found: {cf}")
                         df.loc[cond,  'found'] = len(cf)
                         df.loc[cond,  'process'] = 'captions found'
                         df.to_csv(filename, index = False, quoting = csv.QUOTE_ALL)
@@ -129,6 +175,7 @@ if __name__ == '__main__':
 
             print(f"== done with {channel_id}")
             time.sleep(5)
+        print(f"== Found a total of {caption_count} captions")
 
 
             # capfiles = sorted([filename for filename in glob.glob(f"{local_output_path}/*.*")])
@@ -149,25 +196,32 @@ if __name__ == '__main__':
 # youtube-dl --all-subs --skip-download -o '%(id)s.%(ext)s'-v --ignore-errors PV5BW8P5H_U
     if False:
         # given video_id, manual
-        HTML_TAG_REGEX = re.compile(r'<[^>]*>', re.IGNORECASE)
+        def capture_captions(video_id):
+            start_ = 'https://www.youtube.com/api/timedtext'
+            end_ = '",'
 
-        http_client = requests.Session()
-        text        = http_client.get('https://www.youtube.com/watch?v=' + video_id).text.replace('\\u0026', '&').replace('\\', '')
-        m = re.findall('{}(.+?){}'.format(start_, end_), text)
+            HTML_TAG_REGEX = re.compile(r'<[^>]*>', re.IGNORECASE)
 
-        for u in m:
-            url = start_+u
-            print(f" {datetime.datetime.fromtimestamp(int(Caption.get_expire(url)))}  ")
             http_client = requests.Session()
-            result = requests.Session().get(url)
-            captions = result.text
-            print(f"{len(captions)} \t  {captions[:100]}")
-            if len(captions) > 0:
-                captext = [ re.sub(HTML_TAG_REGEX, '', html.unescape(xml_element.text)).replace("\n",' ').replace("\'","'")
-                            for xml_element in ElementTree.fromstring(result.text)
-                            if xml_element.text is not None ]
-                print(captext[:50])
+            text        = http_client.get('https://www.youtube.com/watch?v=' + video_id).text.replace('\\u0026', '&').replace('\\', '')
+            m = re.findall('{}(.+?){}'.format(start_, end_), text)
+            captions = []
 
+            for u in m:
+                url = start_+u
+                if Caption.get_lang(start_+url) == 'fr':
+                    result = requests.Session().get(url)
+                    captions_text = result.text
+                    if (len(captions_text) > min_len) and (result.status_code == 200):
+                        captext = [ re.sub(HTML_TAG_REGEX, '', html.unescape(xml_element.text)).replace("\n",' ').replace("\'","'")
+                                    for xml_element in ElementTree.fromstring(captions_text)
+                                    if xml_element.text is not None ]
+                        captions.append({
+                            'video_id': video_id,
+                            'len_': len(result.text),
+                            'text': ' '.join(captext)
+                        })
+            return captions[0]['text']
 
     '''
     google cloud storage API examples
