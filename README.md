@@ -143,12 +143,6 @@ Postgres database is hosted on Google Cloud Platform.
 
 Simplest way to connect is by setting up a cloud_sql_proxy.
 
-# BigQuery
-
-[TODO] The data is regularly exported to Big Query for long term storage
-
-
-
 # Install
 
 ## Youtube API key
