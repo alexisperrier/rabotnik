@@ -137,12 +137,49 @@ A Flow (task) is composed of multiple operations
 - job.py: drives the execution of the Flow
 - text.py: NLP utils
 
-# Db
+# Install
+To install on local you need:
+- a postgresql database
+- Youtube API keys
+- google-cloud-sdk with bq
 
-Postgres database is hosted on Google Cloud Platform.
 
-Simplest way to connect is by setting up a cloud_sql_proxy.
+## Database
+The app replies on a postgresql database.
 
+### Google SQL
+At time of writing the database is hosted on Google Cloud Platform.
+
+Simplest way to connect is by setting up a cloud-sql-proxy.
+See the [google documentation](https://cloud.google.com/sql/docs/mysql/sql-proxy#macos-64-bit) on setting up the proxy
+
+For Mac:
+* curl -o cloud_sql_proxy https://dl.google.com/cloudsql/cloud_sql_proxy.darwin.amd64
+
+And run proxy with
+
+* ~/cloud_sql_proxy -dir=~/cloudsql -instances=<project_name>:<zone>:<database name>=tcp:3307
+
+Connection to the database is through
+
+* psql -h 127.0.0.1 -p 3307 -U postgres <database_name> -W
+and the database password
+
+
+### Local
+
+You can recreate the database with
+
+<<<<<<< HEAD
+=======
+## BigQuery
+
+[TODO] The data is regularly exported to Big Query for long term storage
+
+install the google-cloud-sdk on your local and run the ... script regularly
+
+
+>>>>>>> f2e67390636fd3b364d1059c59d397e0c90ede8e
 # Install
 
 ## Youtube API key
