@@ -3,7 +3,7 @@
 Rabotnik is a python based application to monitor the French youtube.
 
 It centralizes multiple background jobs, each one with a specific task.
-The end result is an _exhaustive_ database of all the videos published on youtube in France since .
+The end result is an _exhaustive_ database of all the videos published on youtube in France since early 2020.
 
 The database is composed of
 ### channels
@@ -86,10 +86,10 @@ This discovery process is quite efficient and we discover most active channels a
 # Jobs
 Rabotnik works on multiple server instances in parallel via cron jobs.
 
-- Instances specifics are set in config/config_rabotnik.json
+- Instances specifics are set in config/config_rabotnik.json see the config_rabotnik.json.sample
 - the *py* folder holds the main job scripts (called  _flows_)
 - The *py/scripts* folder holds one time scripts for specific import exports and clean up operations
-- ./sandbox.py and sql/sandbox.sql are _sandbox_ script hoolders used to test new scripts and debug.
+- ./sandbox.py and sql/sandbox.sql are _sandbox_ script holders used to test new scripts and debug.
 - the *main.py* drives the execution and parametrization of the different flows
 
 ## Run a job
@@ -141,11 +141,12 @@ A Flow (task) is composed of multiple operations
 To install on local you need:
 - a postgresql database
 - Youtube API keys
-- google-cloud-sdk with bq
 
 
 ## Database
-The app replies on a postgresql database.
+The app repies on a postgresql 11 database.
+
+More info in sql/database.md
 
 ### Google SQL
 At time of writing the database is hosted on Google Cloud Platform.
@@ -168,18 +169,10 @@ and the database password
 
 ### Local
 
-You can recreate the database with
+The database has been recreated on a debian local instance with pg_dump.
 
-<<<<<<< HEAD
-=======
-## BigQuery
+see the file sql/sqlbackup.md for more info
 
-[TODO] The data is regularly exported to Big Query for long term storage
-
-install the google-cloud-sdk on your local and run the ... script regularly
-
-
->>>>>>> f2e67390636fd3b364d1059c59d397e0c90ede8e
 # Install
 
 ## Youtube API key
