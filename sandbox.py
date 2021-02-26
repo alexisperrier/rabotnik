@@ -21,10 +21,10 @@ if __name__ == '__main__':
 
     params = {'flowtag' : False, 'mode' : 'local', 'counting' : True, 'max_items': 50}
     op = klass(**params)
-    op.get_items()
-    print(op.sql)
-    op.update_query()
-    print('--',op.data.shape)
+    # op.get_items()
+    # print(op.sql)
+    # op.update_query()
+    # print('--',op.data.shape)
     # op.freeze()
     # op.query_api()
     # op.decode()
