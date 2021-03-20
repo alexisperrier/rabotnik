@@ -7,7 +7,7 @@ __pycache__/
 
 log/*.log
 
-config/config_rabotnik.json
+config/*.json
 
 notes/
 data/

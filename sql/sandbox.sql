@@ -1,4 +1,12 @@
 -- some queries
+select count(v.id) as n, v.pubdate
+from video v
+join pipeline p on p.video_id = v.video_id
+where p.status = 'active'
+and v.pubdate > '2020-05-01'
+and  v.pubdate < '2021-01-01'
+group by pubdate;
+
 
 select v.video_id, c.*
 from video v
