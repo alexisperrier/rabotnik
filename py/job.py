@@ -18,7 +18,7 @@ from pathlib import Path
 
 class Job(object):
 
-    config_file_path = './config/config_rabotnik.json'
+    config_file_path = './config/config_rabotnik_local.json'
 
     def __init__(self):
         config_path = os.path.join(os.path.dirname(__file__),'..', Job.config_file_path  )
